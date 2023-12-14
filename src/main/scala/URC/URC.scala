@@ -12,6 +12,7 @@ import hb_decimator.config.{HbConfig => decHbConfig}
 import java.io.File
 
 import chisel3._
+import chisel3.util.{log2Ceil}
 import chisel3.experimental.FixedPoint
 import chisel3.stage.{ChiselStage, ChiselGeneratorAnnotation}
 import chisel3.stage.ChiselGeneratorAnnotation
@@ -25,10 +26,30 @@ import f2_decimator._
 class URCCLK extends Bundle {
     val f2intclock_high = Input(Clock())
     val f2decclock_low = Input(Clock())
+    val cic3clockfast = Input(Clock())
+    val hb1clock_high = Input(Clock())
+    val hb2clock_high = Input(Clock())
+    val hb3clock_high = Input(Clock())
+    val cic3clockslow = Input(Clock())
+    val hb1clock_low = Input(Clock())
+    val hb2clock_low = Input(Clock())
+    val hb3clock_low = Input(Clock())
+}
+
+class URCCTRL(val resolution : Int, val gainBits: Int) extends Bundle {
+    val cic3scale = Input(UInt(gainBits.W))
+    val cic3shift = Input(UInt(log2Ceil(resolution).W))
+    val reset_loop = Input(Bool())
+    val hb1scale = Input(UInt(gainBits.W))
+    val hb2scale = Input(UInt(gainBits.W))
+    val hb3scale = Input(UInt(gainBits.W))
+    val mode = Input(UInt(3.W))
+    val convmode = Input(UInt(1.W))
 }
 
 class URCIO(resolution: Int, gainBits: Int) extends Bundle {
-    val clock = new URCCLK  
+    val clock = new URCCLK
+    val control = new URCCTRL(resolution=resolution, gainBits=gainBits)
     val in = new Bundle {
         val iptr_A = Input(DspComplex(SInt(resolution.W), SInt(resolution.W)))
     }
@@ -42,6 +63,8 @@ class URC(config: UrcConfig) extends Module {
     val data_reso = config.resolution
     val calc_reso = config.resolution * 2
 
+    val czero  = DspComplex(0.S(data_reso.W),0.S(data_reso.W)) //Constant complex zero
+
    //Reset initializations
     val f2intreset = Wire(Bool())
     val f2decreset = Wire(Bool())
@@ -52,9 +75,50 @@ class URC(config: UrcConfig) extends Module {
         new F2_Interpolator(config=config.f2int_config)
     ))
 
+    f2int.io.control.cic3derivscale := io.control.cic3scale
+    f2int.io.control.cic3derivshift := io.control.cic3shift
+    f2int.io.control.reset_loop     := io.control.reset_loop
+    f2int.io.control.hb1scale       := io.control.hb1scale
+    f2int.io.control.hb2scale       := io.control.hb2scale
+    f2int.io.control.hb3scale       := io.control.hb3scale
+    f2int.io.control.mode           := io.control.mode
+
+    f2int.io.clock.hb1clock_low       := io.clock.hb1clock_low
+    f2int.io.clock.hb1clock_high      := io.clock.hb1clock_high
+    f2int.io.clock.hb2clock_high      := io.clock.hb2clock_high
+    f2int.io.clock.hb3clock_high      := io.clock.hb3clock_high
+    f2int.io.clock.cic3clockfast      := io.clock.cic3clockfast
+
+
+
     val f2dec = withClockAndReset(io.clock.f2decclock_low, f2decreset)(Module( 
         new F2_Decimator(config=config.f2dec_config)
-    ))
+    ))    
+
+    f2dec.io.control.cic3integscale := io.control.cic3scale
+    f2dec.io.control.cic3integshift := io.control.cic3shift
+    f2dec.io.control.reset_loop     := io.control.reset_loop
+    f2dec.io.control.hb1scale       := io.control.hb1scale
+    f2dec.io.control.hb2scale       := io.control.hb2scale
+    f2dec.io.control.hb3scale       := io.control.hb3scale
+    f2dec.io.control.mode           := io.control.mode
+
+    f2dec.io.clock.cic3clockslow      := io.clock.cic3clockslow
+    f2dec.io.clock.hb1clock_low       := io.clock.hb1clock_low
+    f2dec.io.clock.hb2clock_low       := io.clock.hb2clock_low
+    f2dec.io.clock.hb3clock_low       := io.clock.hb3clock_low
+
+    when(io.control.convmode.asBool){
+        f2dec.io.in.iptr_A := io.in.iptr_A
+        io.out.Z := f2dec.io.out.Z
+
+        f2int.io.in.iptr_A := czero
+    } .otherwise {
+        f2int.io.in.iptr_A := io.in.iptr_A
+        io.out.Z := f2int.io.out.Z
+
+        f2dec.io.in.iptr_A := czero
+    }
 }
 
 
