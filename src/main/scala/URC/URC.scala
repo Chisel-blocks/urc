@@ -17,8 +17,8 @@ import f2_interpolator._
 import f2_decimator._
 
 class URCCLK extends Bundle {
-    val f2_intclock_high = Input(Clock())
-    val f2_decclock_low = Input(Clock())
+    val f2intclock_high = Input(Clock())
+    val f2decclock_low = Input(Clock())
 }
 
 class URCIO(resolution: Int, gainBits: Int) extends Bundle {
@@ -63,7 +63,7 @@ object URC extends App with OptionParser {
     val f2int_config_file = options("f2int_config_file")
     val f2dec_config_file = options("f2dec_config_file")
     val target_dir = options("td")
-    var urc_config: Option[F2Config] = None
+    var urc_config: Option[UrcConfig] = None
 
     UrcConfig.loadFromFiles(urc_config_file, f2int_config_file, f2dec_config_file) match {
         case Left(config) => {

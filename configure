@@ -75,7 +75,7 @@ TEST_TARGETS = \$(foreach name,\$(TEST_MODULES), test_\$(name))
 SBT=sbt -J-Xmx16G -J-Xss8M
 
 # Default parameters
-urc_config_file ?= "f2-config.yml"
+urc_config_file ?= "urc-config.yml"
 f2int_config_file ?= "f2_interpolator/configs/f2int-config.yml"
 f2dec_config_file ?= "f2_decimator/configs/f2dec-config.yml"
 td ?= "\$(VERILOGDIR)/"

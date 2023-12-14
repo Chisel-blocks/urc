@@ -8,25 +8,31 @@ import scala.math.BigInt
 import scala.io.Source
 import chisel3._
 
-import f2_interpolator.config.{F2Config}
+import hb_interpolator.config.{HbConfig => HbintConfig}
+import hb_decimator.config.{HbConfig => HbdecConfig}
+import f2_interpolator.config.{F2Config => F2intConfig}
+import f2_decimator.config.{F2Config => F2decConfig}
 
 case class UrcGeneric(
   syntax_version:     Option[Int], // None for scala instantiation
   resolution:         Int,
   gainBits:           Int
-}
+)
 
 case class UrcConfig(
   syntax_version:     Option[Int], // None for scala instantiation
   resolution:         Int,
   gainBits:           Int,
-  f2int_config:       F2Config,
-  f2dec_config:       F2Config,
+  f2int_config:       F2intConfig,
+  f2dec_config:       F2decConfig,
 )
 
-object F2Config {
+object UrcConfig {
+  implicit val HbintConfigFormat = yamlFormat4(HbintConfig.apply)
+  implicit val HbdecConfigFormat = yamlFormat4(HbdecConfig.apply)
+  implicit val F2intConfigFormat = yamlFormat7(F2intConfig.apply)
+  implicit val F2decConfigFormat = yamlFormat7(F2decConfig.apply)
   implicit val UrcGenericFormat = yamlFormat3(UrcGeneric)
-  implicit val F2ConfigFormat = yamlFormat4(F2Config.apply)
 
   // TODO: Update this to always match the major version number of the release
   val syntaxVersion = 2
@@ -37,7 +43,7 @@ object F2Config {
   /** Type for representing error return values from a function */
   case class Error(msg: String) {
     /** Throw a parsing exception with a debug message. */
-    def except() = { throw new F2ConfigParseException(msg) }
+    def except() = { throw new UrcConfigParseException(msg) }
 
     /** Abort program execution and print out the reason */
     def panic() = {
@@ -112,8 +118,8 @@ object F2Config {
 
     // Parse FirConfig from YAML AST
     val urc_generic = UrcyamlAst.convertTo[UrcGeneric]
-    val f2int_config = F2intyamlAst.convertTo[F2Config]
-    val f2dec_config = F2decyamlAst.convertTo[F2Config]
+    val f2int_config = F2intyamlAst.convertTo[F2intConfig]
+    val f2dec_config = F2decyamlAst.convertTo[F2decConfig]
 
     val config = new UrcConfig(
 	    urc_generic.syntax_version, 
@@ -129,10 +135,10 @@ object F2Config {
     println("gainBits:")
     println(config.gainBits)
 
-    println("hb1:")
+    println("F2 Interpolator:")
     println(config.f2int_config)
 
-    println("hb2:")
+    println("F2 Decimator:")
     println(config.f2dec_config)
 
     Left(config)
