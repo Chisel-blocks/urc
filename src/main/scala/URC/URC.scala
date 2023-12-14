@@ -2,6 +2,12 @@
 package urc
 import config._
 import config.{UrcConfig}
+import f2_interpolator.config.{F2Config => intF2Config}
+import f2_decimator.config.{F2Config => decF2Config}
+import cic_interpolator.config.{CicConfig => intCicConfig}
+import cic_decimator.config.{CicConfig => decCicConfig}
+import hb_interpolator.config.{HbConfig => intHbConfig}
+import hb_decimator.config.{HbConfig => decHbConfig}
 
 import java.io.File
 
@@ -60,12 +66,135 @@ object URC extends App with OptionParser {
     printopts(options, arguments)
 
     val urc_config_file = options("urc_config_file")
-    val f2int_config_file = options("f2int_config_file")
-    val f2dec_config_file = options("f2dec_config_file")
+    val intf2_config_file = options("intf2_config_file")
+    val inthb1_config_file = options("inthb1_config_file")
+    val inthb2_config_file = options("inthb2_config_file")
+    val inthb3_config_file = options("inthb3_config_file")
+    val intcic3_config_file = options("intcic3_config_file")
+    val decf2_config_file = options("decf2_config_file")
+    val dechb1_config_file = options("dechb1_config_file")
+    val dechb2_config_file = options("dechb2_config_file")
+    val dechb3_config_file = options("dechb3_config_file")
+    val deccic3_config_file = options("deccic3_config_file")
     val target_dir = options("td")
+    
     var urc_config: Option[UrcConfig] = None
 
-    UrcConfig.loadFromFiles(urc_config_file, f2int_config_file, f2dec_config_file) match {
+    //Load interpolator
+    var intf2_config: Option[intF2Config] = None
+    var inthb1_config: Option[intHbConfig] = None
+    var inthb2_config: Option[intHbConfig] = None
+    var inthb3_config: Option[intHbConfig] = None
+    var intcic3_config: Option[intCicConfig] = None
+
+    intHbConfig.loadFromFile(inthb1config_file) match {
+        case Left(config) => {
+            inthb1_config = Some(config)
+        }
+        case Right(err) => {
+            System.err.println(s"\nCould not load F2 int hb1 configuration from file:\n${err.msg}")
+            System.exit(-1)
+        }
+    }
+
+    intHbConfig.loadFromFile(inthb2config_file) match {
+        case Left(config) => {
+            inthb2_config = Some(config)
+        }
+        case Right(err) => {
+            System.err.println(s"\nCould not load F2 int hb2 configuration from file:\n${err.msg}")
+            System.exit(-1)
+        }
+    }
+
+    intHbConfig.loadFromFile(inthb3config_file) match {
+        case Left(config) => {
+            hb3int_config = Some(config)
+        }
+        case Right(err) => {
+            System.err.println(s"\nCould not load F2 int hb3 configuration from file:\n${err.msg}")
+            System.exit(-1)
+        }
+    }
+
+    intCicConfig.loadFromFile(intcic3config_file) match {
+        case Left(config) => {
+            intcic3_config = Some(config)
+        }
+        case Right(err) => {
+            System.err.println(s"\nCould not load F2 int cic3 configuration from file:\n${err.msg}")
+            System.exit(-1)
+        }
+    }
+
+    intF2Config.loadFromFile(intf2_config_file, inthb1_config.get, inthb2_config.get, inthb3_config.get, intcic3_config.get) match {
+        case Left(config) => {
+            intf2_config = Some(config)
+        }
+        case Right(err) => {
+            System.err.println(s"\nCould not load F2 int configuration from file:\n${err.msg}")
+            System.exit(-1)
+        }
+    }
+
+    //Load decimator
+    var decf2_config: Option[decF2Config] = None
+    var dechb1_config: Option[decHbConfig] = None
+    var dechb2_config: Option[decHbConfig] = None
+    var dechb3_config: Option[decHbConfig] = None
+    var deccic3_config: Option[decCicConfig] = None
+
+    decHbConfig.loadFromFile(dechb1config_file) match {
+        case Left(config) => {
+            dechb1int_config = Some(config)
+        }
+        case Right(err) => {
+            System.err.println(s"\nCould not load F2 dec hb1 configuration from file:\n${err.msg}")
+            System.exit(-1)
+        }
+    }
+
+    decHbConfig.loadFromFile(dechb2config_file) match {
+        case Left(config) => {
+            dechb2int_config = Some(config)
+        }
+        case Right(err) => {
+            System.err.println(s"\nCould not load F2 dec hb2 configuration from file:\n${err.msg}")
+            System.exit(-1)
+        }
+    }
+
+    decHbConfig.loadFromFile(dechb3config_file) match {
+        case Left(config) => {
+            dechb3int_config = Some(config)
+        }
+        case Right(err) => {
+            System.err.println(s"\nCould not load F2 dec hb3 configuration from file:\n${err.msg}")
+            System.exit(-1)
+        }
+    }
+
+    decCicConfig.loadFromFile(deccic3config_file) match {
+        case Left(config) => {
+            deccic3int_config = Some(config)
+        }
+        case Right(err) => {
+            System.err.println(s"\nCould not load F2 dec cic3 configuration from file:\n${err.msg}")
+            System.exit(-1)
+        }
+    }
+
+    decF2Config.loadFromFile(decf2_config_file, dechb1_config.get, dechb2_config.get, dechb3_config.get, deccic3_config.get) match {
+        case Left(config) => {
+            decf2int_config = Some(config)
+        }
+        case Right(err) => {
+            System.err.println(s"\nCould not load F2 dec configuration from file:\n${err.msg}")
+            System.exit(-1)
+        }
+    }
+
+    URCConfig.loadFromFile(urc_config_file, intf2_config.get, decf2_config.get) match {
         case Left(config) => {
             urc_config = Some(config)
         }
@@ -91,16 +220,32 @@ trait OptionParser {
   // Module specific command-line option flags
   val available_opts: List[String] = List(
       "-urc_config_file",
-      "-f2int_config_file",
-      "-f2dec_config_file",
+      "-intf2_config_file",
+      "-inthb1_config_file",
+      "-inthb2_config_file",
+      "-inthb3_config_file",
+      "-intcic3_config_file",
+      "-decf2_config_file",
+      "-dechb1_config_file",
+      "-dechb2_config_file",
+      "-dechb3_config_file",
+      "-deccic3_config_file",
       "-td"
   )
 
   // Default values for the command-line options
   val default_opts : Map[String, String] = Map(
     "urc_config_file"->"urc-config.yml",
-    "f2int_config_file"->"f2_interpolator/configs/f2int-config.yml",
-    "f2dec_config_file"->"f2_decimator/configs/f2dec-config.yml",
+    "intf2_config_file"->"f2_interpolator/configs/f2-config.yml",
+    "inthb1_config_file"->"f2_interpolator/hb_interpolator/configs/hb1-config.yml",
+    "inthb2_config_file"->"f2_interpolator/hb_interpolator/configs/hb2-config.yml",
+    "inthb3_config_file"->"f2_interpolator/hb_interpolator/configs/hb3-config.yml",
+    "intcic3_config_file"->"f2_interpolator/cic_interpolator/configs/cic3-config.yml",
+    "decf2_config_file"->"f2_decimator/configs/f2-config.yml",
+    "dechb1_config_file"->"f2_decimator/hb_decimator/configs/hb1-config.yml",
+    "dechb2_config_file"->"f2_decimator/hb_decimator/configs/hb2-config.yml",
+    "dechb3_config_file"->"f2_decimator/hb_decimator/configs/hb3-config.yml",
+    "deccic3_config_file"->"f2_decimator/cic3_decimator/configs/cic3-config.yml",
     "td"->"verilog/"
   )
 
@@ -116,8 +261,16 @@ trait OptionParser {
       |
       | Options
       |     -urc_config_file       [String]  : Generator YAML configuration file name. Default "urc-config.yml".
-      |     -f2int_config_file     [String]  : Generator YAML configuration file name. Default "f2int-config.yml".
-      |     -f2dec_config_file     [String]  : Generator YAML configuration file name. Default "f2dec-config.yml".
+      |     -intf2_config_file     [String]  : Generator YAML configuration file name. Default "f2-config.yml".
+      |     -inthb1_config_file    [String]  : Generator YAML configuration file name. Default "hb1-config.yml".
+      |     -inthb2_config_file    [String]  : Generator YAML configuration file name. Default "hb2-config.yml".
+      |     -inthb3_config_file    [String]  : Generator YAML configuration file name. Default "hb3-config.yml".
+      |     -intcic3_config_file   [String]  : Generator YAML configuration file name. Default "cic3-config.yml".
+      |     -decf2_config_file     [String]  : Generator YAML configuration file name. Default "f2-config.yml".
+      |     -dechb1_config_file    [String]  : Generator YAML configuration file name. Default "hb1-config.yml".
+      |     -dechb2_config_file    [String]  : Generator YAML configuration file name. Default "hb2-config.yml".
+      |     -dechb3_config_file    [String]  : Generator YAML configuration file name. Default "hb3-config.yml".
+      |     -deccic3_config_file   [String]  : Generator YAML configuration file name. Default "cic3-config.yml".
       |     -td                    [String]  : Target dir for building. Default "verilog/".
       |     -h                               : Show this help message.
       """.stripMargin

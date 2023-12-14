@@ -76,11 +76,19 @@ SBT=sbt -J-Xmx16G -J-Xss8M
 
 # Default parameters
 urc_config_file ?= "urc-config.yml"
-f2int_config_file ?= "f2_interpolator/configs/f2int-config.yml"
-f2dec_config_file ?= "f2_decimator/configs/f2dec-config.yml"
+intf2_config_file ?= "f2_interpolator/configs/f2int-config.yml"
+inthb1_config_file ?= "f2_interpolator/hb_interpolator/configs/hb1-config.yml"
+inthb2_config_file ?= "f2_interpolator/hb_interpolator/configs/hb2-config.yml"
+inthb3_config_file ?= "f2_interpolator/hb_interpolator/configs/hb3-config.yml"
+intcic3_config_file ?= "f2_interpolator/cic_interpolator/configs/cic3-config.yml"
+decf2_config_file ?= "f2_decimator/configs/f2dec-config.yml"
+dechb1_config_file ?= "f2_decimator/hb_decimator/configs/hb1-config.yml"
+dechb2_config_file ?= "f2_decimator/hb_decimator/configs/hb2-config.yml"
+dechb3_config_file ?= "f2_decimator/hb_decimator/configs/hb3-config.yml"
+deccic3_config_file ?= "f2_decimator/cic3_decimator/configs/cic3-config.yml"
 td ?= "\$(VERILOGDIR)/"
 
-MAINPARAMS = -urc_config_file \$(urc_config_file) -f2int_config_file \$(f2int_config_file) -f2dec_config_file \$(f2dec_config_file) -td \$(td)
+MAINPARAMS = -urc_config_file \$(urc_config_file) -intf2_config_file \$(intf2_config_file) -inthb1_config_file \$(inthb1_config_file) -inthb2_config_file \$(inthb2_config_file) -inthb3_config_file \$(inthb3_config_file) -intcic3_config_file \$(intcic3_config_file) -decf2_config_file \$(decf2_config_file) -dechb1_config_file \$(dechb1_config_file) -dechb2_config_file \$(dechb2_config_file) -dechb3_config_file \$(dechb3_config_file) -deccic3_config_file \$(deccic3_config_file) -td \$(td)
 
 
 

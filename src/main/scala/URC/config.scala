@@ -8,10 +8,8 @@ import scala.math.BigInt
 import scala.io.Source
 import chisel3._
 
-import hb_interpolator.config.{HbConfig => HbintConfig}
-import hb_decimator.config.{HbConfig => HbdecConfig}
-import f2_interpolator.config.{F2Config => F2intConfig}
-import f2_decimator.config.{F2Config => F2decConfig}
+import f2_interpolator.config.{F2Config => intF2Config}
+import f2_decimator.config.{F2Config => decF2Config}
 
 case class UrcGeneric(
   syntax_version:     Option[Int], // None for scala instantiation
@@ -28,10 +26,6 @@ case class UrcConfig(
 )
 
 object UrcConfig {
-  implicit val HbintConfigFormat = yamlFormat4(HbintConfig.apply)
-  implicit val HbdecConfigFormat = yamlFormat4(HbdecConfig.apply)
-  implicit val F2intConfigFormat = yamlFormat7(F2intConfig.apply)
-  implicit val F2decConfigFormat = yamlFormat7(F2decConfig.apply)
   implicit val UrcGenericFormat = yamlFormat3(UrcGeneric)
 
   // TODO: Update this to always match the major version number of the release
@@ -70,32 +64,12 @@ object UrcConfig {
     Left(version)
   }
 
-  def loadFromFiles(urcfile: String, f2intfile: String, f2decfile: String): Either[UrcConfig, Error] = {
+  def loadFromFiles(urcfile: String, f2int_config: intF2Config, f2dec_config: decF2Config): Either[UrcConfig, Error] = {
     println(s"\nLoading Urc configuration from file: $urcfile")
     var UrcfileString: String = ""
     try {
       val bufferedSource = Source.fromFile(urcfile)
       UrcfileString = bufferedSource.getLines().mkString("\n")
-      bufferedSource.close
-    } catch {
-      case e: Exception => return Right(Error(e.getMessage()))
-    }
-
-    println(s"\nLoading F2int configuration from file: $f2intfile")
-    var F2intfileString: String = ""
-    try {
-      val bufferedSource = Source.fromFile(f2intfile)
-      F2intfileString = bufferedSource.getLines().mkString("\n")
-      bufferedSource.close
-    } catch {
-      case e: Exception => return Right(Error(e.getMessage()))
-    }
-
-    println(s"\nLoading F2dec configuration from file: $f2decfile")
-    var F2decfileString: String = ""
-    try {
-      val bufferedSource = Source.fromFile(f2decfile)
-      F2decfileString = bufferedSource.getLines().mkString("\n")
       bufferedSource.close
     } catch {
       case e: Exception => return Right(Error(e.getMessage()))
@@ -107,8 +81,6 @@ object UrcConfig {
 
     // Determine syntax version
     val UrcyamlAst = UrcfileString.parseYaml
-    val F2intyamlAst = F2intfileString.parseYaml
-    val F2decyamlAst = F2decfileString.parseYaml
 
     val syntaxVersion = parseSyntaxVersion(UrcyamlAst)
     syntaxVersion match {
@@ -118,8 +90,6 @@ object UrcConfig {
 
     // Parse FirConfig from YAML AST
     val urc_generic = UrcyamlAst.convertTo[UrcGeneric]
-    val f2int_config = F2intyamlAst.convertTo[F2intConfig]
-    val f2dec_config = F2decyamlAst.convertTo[F2decConfig]
 
     val config = new UrcConfig(
 	    urc_generic.syntax_version, 
@@ -134,12 +104,6 @@ object UrcConfig {
 
     println("gainBits:")
     println(config.gainBits)
-
-    println("F2 Interpolator:")
-    println(config.f2int_config)
-
-    println("F2 Decimator:")
-    println(config.f2dec_config)
 
     Left(config)
   }
