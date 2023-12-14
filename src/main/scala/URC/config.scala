@@ -21,8 +21,8 @@ case class UrcConfig(
   syntax_version:     Option[Int], // None for scala instantiation
   resolution:         Int,
   gainBits:           Int,
-  f2int_config:       F2intConfig,
-  f2dec_config:       F2decConfig,
+  f2int_config:       intF2Config,
+  f2dec_config:       decF2Config,
 )
 
 object UrcConfig {
@@ -64,7 +64,7 @@ object UrcConfig {
     Left(version)
   }
 
-  def loadFromFiles(urcfile: String, f2int_config: intF2Config, f2dec_config: decF2Config): Either[UrcConfig, Error] = {
+  def loadFromFile(urcfile: String, f2int_config: intF2Config, f2dec_config: decF2Config): Either[UrcConfig, Error] = {
     println(s"\nLoading Urc configuration from file: $urcfile")
     var UrcfileString: String = ""
     try {

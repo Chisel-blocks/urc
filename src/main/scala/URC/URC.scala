@@ -87,7 +87,7 @@ object URC extends App with OptionParser {
     var inthb3_config: Option[intHbConfig] = None
     var intcic3_config: Option[intCicConfig] = None
 
-    intHbConfig.loadFromFile(inthb1config_file) match {
+    intHbConfig.loadFromFile(inthb1_config_file) match {
         case Left(config) => {
             inthb1_config = Some(config)
         }
@@ -97,7 +97,7 @@ object URC extends App with OptionParser {
         }
     }
 
-    intHbConfig.loadFromFile(inthb2config_file) match {
+    intHbConfig.loadFromFile(inthb2_config_file) match {
         case Left(config) => {
             inthb2_config = Some(config)
         }
@@ -107,9 +107,9 @@ object URC extends App with OptionParser {
         }
     }
 
-    intHbConfig.loadFromFile(inthb3config_file) match {
+    intHbConfig.loadFromFile(inthb3_config_file) match {
         case Left(config) => {
-            hb3int_config = Some(config)
+            inthb3_config = Some(config)
         }
         case Right(err) => {
             System.err.println(s"\nCould not load F2 int hb3 configuration from file:\n${err.msg}")
@@ -117,7 +117,7 @@ object URC extends App with OptionParser {
         }
     }
 
-    intCicConfig.loadFromFile(intcic3config_file) match {
+    intCicConfig.loadFromFile(intcic3_config_file) match {
         case Left(config) => {
             intcic3_config = Some(config)
         }
@@ -144,9 +144,9 @@ object URC extends App with OptionParser {
     var dechb3_config: Option[decHbConfig] = None
     var deccic3_config: Option[decCicConfig] = None
 
-    decHbConfig.loadFromFile(dechb1config_file) match {
+    decHbConfig.loadFromFile(dechb1_config_file) match {
         case Left(config) => {
-            dechb1int_config = Some(config)
+            dechb1_config = Some(config)
         }
         case Right(err) => {
             System.err.println(s"\nCould not load F2 dec hb1 configuration from file:\n${err.msg}")
@@ -154,9 +154,9 @@ object URC extends App with OptionParser {
         }
     }
 
-    decHbConfig.loadFromFile(dechb2config_file) match {
+    decHbConfig.loadFromFile(dechb2_config_file) match {
         case Left(config) => {
-            dechb2int_config = Some(config)
+            dechb2_config = Some(config)
         }
         case Right(err) => {
             System.err.println(s"\nCould not load F2 dec hb2 configuration from file:\n${err.msg}")
@@ -164,9 +164,9 @@ object URC extends App with OptionParser {
         }
     }
 
-    decHbConfig.loadFromFile(dechb3config_file) match {
+    decHbConfig.loadFromFile(dechb3_config_file) match {
         case Left(config) => {
-            dechb3int_config = Some(config)
+            dechb3_config = Some(config)
         }
         case Right(err) => {
             System.err.println(s"\nCould not load F2 dec hb3 configuration from file:\n${err.msg}")
@@ -174,9 +174,9 @@ object URC extends App with OptionParser {
         }
     }
 
-    decCicConfig.loadFromFile(deccic3config_file) match {
+    decCicConfig.loadFromFile(deccic3_config_file) match {
         case Left(config) => {
-            deccic3int_config = Some(config)
+            deccic3_config = Some(config)
         }
         case Right(err) => {
             System.err.println(s"\nCould not load F2 dec cic3 configuration from file:\n${err.msg}")
@@ -186,7 +186,7 @@ object URC extends App with OptionParser {
 
     decF2Config.loadFromFile(decf2_config_file, dechb1_config.get, dechb2_config.get, dechb3_config.get, deccic3_config.get) match {
         case Left(config) => {
-            decf2int_config = Some(config)
+            decf2_config = Some(config)
         }
         case Right(err) => {
             System.err.println(s"\nCould not load F2 dec configuration from file:\n${err.msg}")
@@ -194,7 +194,7 @@ object URC extends App with OptionParser {
         }
     }
 
-    URCConfig.loadFromFile(urc_config_file, intf2_config.get, decf2_config.get) match {
+    UrcConfig.loadFromFile(urc_config_file, intf2_config.get, decf2_config.get) match {
         case Left(config) => {
             urc_config = Some(config)
         }
@@ -245,7 +245,7 @@ trait OptionParser {
     "dechb1_config_file"->"f2_decimator/hb_decimator/configs/hb1-config.yml",
     "dechb2_config_file"->"f2_decimator/hb_decimator/configs/hb2-config.yml",
     "dechb3_config_file"->"f2_decimator/hb_decimator/configs/hb3-config.yml",
-    "deccic3_config_file"->"f2_decimator/cic3_decimator/configs/cic3-config.yml",
+    "deccic3_config_file"->"f2_decimator/cic_decimator/configs/cic3-config.yml",
     "td"->"verilog/"
   )
 
