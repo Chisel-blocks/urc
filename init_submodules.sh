@@ -5,7 +5,7 @@ DIR=$( cd `dirname $0` && pwd )
 SUBMODULES="\
     ./f2_interpolator \
     ./f2_decimator \
-    ./clkdiv
+    ./clkdiv_n_2_4_8
 "
 
 git submodule sync
