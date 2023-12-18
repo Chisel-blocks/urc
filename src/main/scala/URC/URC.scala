@@ -63,6 +63,9 @@ class URC(config: UrcConfig) extends Module {
 
     val czero  = DspComplex(0.S(data_reso.W),0.S(data_reso.W)) //Constant complex zero
 
+    import UrcStates.State
+    import UrcStates.State._
+
     //Select state with master clock
     val state = RegInit(bypass)
 
