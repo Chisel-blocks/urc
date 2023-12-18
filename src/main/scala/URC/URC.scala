@@ -22,18 +22,16 @@ import dsptools.numbers.DspComplex
 
 import f2_interpolator._
 import f2_decimator._
+import clkdiv_n_2_4_8._
+
+object UrcStates {
+    object State extends ChiselEnum {
+        val bypass, two, four, eight, more = Value
+    }  
+}
 
 class URCCLK extends Bundle {
-    val f2intclock_high = Input(Clock())
-    val f2decclock_low = Input(Clock())
-    val cic3clockfast = Input(Clock())
-    val hb1clock_high = Input(Clock())
-    val hb2clock_high = Input(Clock())
-    val hb3clock_high = Input(Clock())
-    val cic3clockslow = Input(Clock())
-    val hb1clock_low = Input(Clock())
-    val hb2clock_low = Input(Clock())
-    val hb3clock_low = Input(Clock())
+    val clock_main = Input(Clock())
 }
 
 class URCCTRL(val resolution : Int, val gainBits: Int) extends Bundle {
@@ -65,13 +63,38 @@ class URC(config: UrcConfig) extends Module {
 
     val czero  = DspComplex(0.S(data_reso.W),0.S(data_reso.W)) //Constant complex zero
 
+    //Select state with master clock
+    val state = RegInit(bypass)
+
+    //Decoder for the modes
+    when(io.control.mode === 0.U){
+        state := bypass
+    } .elsewhen(io.control.mode === 1.U) {
+        state := two
+    } .elsewhen(io.control.mode === 2.U) {
+        state := four
+    } .elsewhen(io.control.mode === 3.U) {
+        state := eight
+    } .elsewhen(io.control.mode === 4.U) {
+        state := more
+    }.otherwise {
+        state := bypass
+    }
+
    //Reset initializations
+    val clkreset = Wire(Bool())
     val f2intreset = Wire(Bool())
     val f2decreset = Wire(Bool())
+
+    clkreset := reset.asBool
     f2intreset := reset.asBool
     f2decreset := reset.asBool
 
-    val f2int = withClockAndReset(io.clock.f2intclock_high, f2intreset)(Module( 
+    val clkdiv = withClockAndReset(io.clock.clock_main, clkreset)(Module( 
+        new clkdiv_n_2_4_8(n=8)
+    ))
+
+    val f2int = withClockAndReset(io.clock.clock_main, f2intreset)(Module( 
         new F2_Interpolator(config=config.f2int_config)
     ))
 
@@ -83,15 +106,7 @@ class URC(config: UrcConfig) extends Module {
     f2int.io.control.hb3scale       := io.control.hb3scale
     f2int.io.control.mode           := io.control.mode
 
-    f2int.io.clock.hb1clock_low       := io.clock.hb1clock_low
-    f2int.io.clock.hb1clock_high      := io.clock.hb1clock_high
-    f2int.io.clock.hb2clock_high      := io.clock.hb2clock_high
-    f2int.io.clock.hb3clock_high      := io.clock.hb3clock_high
-    f2int.io.clock.cic3clockfast      := io.clock.cic3clockfast
-
-
-
-    val f2dec = withClockAndReset(io.clock.f2decclock_low, f2decreset)(Module( 
+    val f2dec = withClockAndReset(io.clock.clock_main, f2decreset)(Module( 
         new F2_Decimator(config=config.f2dec_config)
     ))    
 
@@ -103,21 +118,50 @@ class URC(config: UrcConfig) extends Module {
     f2dec.io.control.hb3scale       := io.control.hb3scale
     f2dec.io.control.mode           := io.control.mode
 
-    f2dec.io.clock.cic3clockslow      := io.clock.cic3clockslow
-    f2dec.io.clock.hb1clock_low       := io.clock.hb1clock_low
-    f2dec.io.clock.hb2clock_low       := io.clock.hb2clock_low
-    f2dec.io.clock.hb3clock_low       := io.clock.hb3clock_low
-
     when(io.control.convmode.asBool){
-        f2dec.io.in.iptr_A := io.in.iptr_A
-        io.out.Z := f2dec.io.out.Z
-
+        f2intreset := true.B
         f2int.io.in.iptr_A := czero
-    } .otherwise {
-        f2int.io.in.iptr_A := io.in.iptr_A
-        io.out.Z := f2int.io.out.Z
 
+        f2dec.io.in.iptr_A          := io.in.iptr_A
+        f2decreset                  := reset.asBool
+        f2dec.io.control.reset_loop := io.control.reset_loop
+        io.out.Z                    := f2dec.io.out.Z
+
+        f2dec.io.clock.cic3clockslow := clkdiv.io.clkpn
+        f2dec.io.clock.hb1clock_low  := clkdiv.io.clkp2n
+        f2dec.io.clock.hb2clock_low  := clkdiv.io.clkp4n
+        f2dec.io.clock.hb3clock_low  := clkdiv.io.clkp8n
+    } .otherwise {
+        f2decreset := true.B
         f2dec.io.in.iptr_A := czero
+
+        f2int.io.in.iptr_A           := io.in.iptr_A
+        f2intreset                   := reset.asBool
+        f2int.io.control.reset_loop  := io.control.reset_loop
+        io.out.Z                     := f2int.io.out.Z
+
+        f2int.io.clock.hb3clock_high := clkdiv.io.clkp2n
+        f2int.io.clock.hb2clock_high := clkdiv.io.clkp4n
+        f2int.io.clock.hb1clock_high := clkdiv.io.clkp8n
+        f2int.io.clock.cic3clockfast := clkdiv.io.clkpn
+    }
+
+    clkdiv.io.reset_clk := clkreset
+    clkdiv.io.Ndiv := 2.U
+    clkdiv.io.shift := 0.U
+
+    //Modes
+    when(state === two){
+        clkdiv.io.shift := 3.U
+    }.elsewhen(state === four){
+        clkdiv.io.shift := 2.U
+    }.elsewhen(state === eight){
+        clkdiv.io.shift := 1.U
+    }.elsewhen(state === more){
+        clkdiv.io.shift := 0.U
+    }.otherwise{
+        // Bypass
+        clkdiv.io.shift := 4.U
     }
 }
 

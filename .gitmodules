@@ -4,3 +4,6 @@
 [submodule "f2_decimator"]
 	path = f2_decimator
 	url = git@github.com:Chisel-blocks/f2_decimator.git
+[submodule "clkdiv_n_2_4_8"]
+	path = clkdiv_n_2_4_8
+	url = git@github.com:Chisel-blocks/clkdiv_n_2_4_8.git

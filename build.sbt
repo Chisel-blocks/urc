@@ -42,3 +42,4 @@ def gitSubmoduleHashSnapshotVersion(submod: String): String = {
 // libraryDependencies += "Chisel-blocks" %% "someblock" % gitSubmoduleHashSnapshotVersion("someblock")
 libraryDependencies += "Chisel-blocks" %% "f2_interpolator" % gitSubmoduleHashSnapshotVersion("f2_interpolator")
 libraryDependencies += "Chisel-blocks" %% "f2_decimator" % gitSubmoduleHashSnapshotVersion("f2_decimator")
+libraryDependencies += "Chisel-blocks" %% "clkdiv_n_2_4_8" % gitSubmoduleHashSnapshotVersion("clkdiv_n_2_4_8")
