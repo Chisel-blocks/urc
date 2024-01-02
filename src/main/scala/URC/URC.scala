@@ -2,12 +2,6 @@
 package urc
 import config._
 import config.{UrcConfig}
-import f2_interpolator.config.{F2Config => intF2Config}
-import f2_decimator.config.{F2Config => decF2Config}
-import cic_interpolator.config.{CicConfig => intCicConfig}
-import cic_decimator.config.{CicConfig => decCicConfig}
-import hb_interpolator.config.{HbConfig => intHbConfig}
-import hb_decimator.config.{HbConfig => decHbConfig}
 
 import java.io.File
 
@@ -196,121 +190,18 @@ object URC extends App with OptionParser {
     
     var urc_config: Option[UrcConfig] = None
 
-    //Load interpolator
-    var intf2_config: Option[intF2Config] = None
-    var inthb1_config: Option[intHbConfig] = None
-    var inthb2_config: Option[intHbConfig] = None
-    var inthb3_config: Option[intHbConfig] = None
-    var intcic3_config: Option[intCicConfig] = None
-
-    intHbConfig.loadFromFile(inthb1_config_file) match {
-        case Left(config) => {
-            inthb1_config = Some(config)
-        }
-        case Right(err) => {
-            System.err.println(s"\nCould not load F2 int hb1 configuration from file:\n${err.msg}")
-            System.exit(-1)
-        }
-    }
-
-    intHbConfig.loadFromFile(inthb2_config_file) match {
-        case Left(config) => {
-            inthb2_config = Some(config)
-        }
-        case Right(err) => {
-            System.err.println(s"\nCould not load F2 int hb2 configuration from file:\n${err.msg}")
-            System.exit(-1)
-        }
-    }
-
-    intHbConfig.loadFromFile(inthb3_config_file) match {
-        case Left(config) => {
-            inthb3_config = Some(config)
-        }
-        case Right(err) => {
-            System.err.println(s"\nCould not load F2 int hb3 configuration from file:\n${err.msg}")
-            System.exit(-1)
-        }
-    }
-
-    intCicConfig.loadFromFile(intcic3_config_file) match {
-        case Left(config) => {
-            intcic3_config = Some(config)
-        }
-        case Right(err) => {
-            System.err.println(s"\nCould not load F2 int cic3 configuration from file:\n${err.msg}")
-            System.exit(-1)
-        }
-    }
-
-    intF2Config.loadFromFile(intf2_config_file, inthb1_config.get, inthb2_config.get, inthb3_config.get, intcic3_config.get) match {
-        case Left(config) => {
-            intf2_config = Some(config)
-        }
-        case Right(err) => {
-            System.err.println(s"\nCould not load F2 int configuration from file:\n${err.msg}")
-            System.exit(-1)
-        }
-    }
-
-    //Load decimator
-    var decf2_config: Option[decF2Config] = None
-    var dechb1_config: Option[decHbConfig] = None
-    var dechb2_config: Option[decHbConfig] = None
-    var dechb3_config: Option[decHbConfig] = None
-    var deccic3_config: Option[decCicConfig] = None
-
-    decHbConfig.loadFromFile(dechb1_config_file) match {
-        case Left(config) => {
-            dechb1_config = Some(config)
-        }
-        case Right(err) => {
-            System.err.println(s"\nCould not load F2 dec hb1 configuration from file:\n${err.msg}")
-            System.exit(-1)
-        }
-    }
-
-    decHbConfig.loadFromFile(dechb2_config_file) match {
-        case Left(config) => {
-            dechb2_config = Some(config)
-        }
-        case Right(err) => {
-            System.err.println(s"\nCould not load F2 dec hb2 configuration from file:\n${err.msg}")
-            System.exit(-1)
-        }
-    }
-
-    decHbConfig.loadFromFile(dechb3_config_file) match {
-        case Left(config) => {
-            dechb3_config = Some(config)
-        }
-        case Right(err) => {
-            System.err.println(s"\nCould not load F2 dec hb3 configuration from file:\n${err.msg}")
-            System.exit(-1)
-        }
-    }
-
-    decCicConfig.loadFromFile(deccic3_config_file) match {
-        case Left(config) => {
-            deccic3_config = Some(config)
-        }
-        case Right(err) => {
-            System.err.println(s"\nCould not load F2 dec cic3 configuration from file:\n${err.msg}")
-            System.exit(-1)
-        }
-    }
-
-    decF2Config.loadFromFile(decf2_config_file, dechb1_config.get, dechb2_config.get, dechb3_config.get, deccic3_config.get) match {
-        case Left(config) => {
-            decf2_config = Some(config)
-        }
-        case Right(err) => {
-            System.err.println(s"\nCould not load F2 dec configuration from file:\n${err.msg}")
-            System.exit(-1)
-        }
-    }
-
-    UrcConfig.loadFromFile(urc_config_file, intf2_config.get, decf2_config.get) match {
+    UrcConfig.loadFromFile(
+        urc_config_file, 
+        intf2_config_file,
+        inthb1_config_file,
+        inthb2_config_file,
+        inthb3_config_file,
+        intcic3_config_file,
+        decf2_config_file,
+        dechb1_config_file,
+        dechb2_config_file,
+        dechb3_config_file,
+        deccic3_config_file) match {
         case Left(config) => {
             urc_config = Some(config)
         }

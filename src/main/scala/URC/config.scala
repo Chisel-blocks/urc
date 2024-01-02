@@ -64,12 +64,25 @@ object UrcConfig {
     Left(version)
   }
 
-  def loadFromFile(urcfile: String, f2int_config: intF2Config, f2dec_config: decF2Config): Either[UrcConfig, Error] = {
-    println(s"\nLoading Urc configuration from file: $urcfile")
-    var UrcfileString: String = ""
+  def loadFromFile(
+    urc_file: String, 
+    intf2_file: String, 
+    inthb1_file: String, 
+    inthb2_file: String, 
+    inthb3_file: String, 
+    intcic3_file: String,
+    decf2_file: String, 
+    dechb1_file: String, 
+    dechb2_file: String, 
+    dechb3_file: String, 
+    deccic3_file: String
+    ): Either[UrcConfig, Error] = {
+
+    println(s"\nLoading Urc configuration from file: $urc_file")
+    var Urc_fileString: String = ""
     try {
-      val bufferedSource = Source.fromFile(urcfile)
-      UrcfileString = bufferedSource.getLines().mkString("\n")
+      val bufferedSource = Source.fromFile(urc_file)
+      Urc_fileString = bufferedSource.getLines().mkString("\n")
       bufferedSource.close
     } catch {
       case e: Exception => return Right(Error(e.getMessage()))
@@ -80,7 +93,7 @@ object UrcConfig {
     //println(s"```\n$fileString\n```")
 
     // Determine syntax version
-    val UrcyamlAst = UrcfileString.parseYaml
+    val UrcyamlAst = Urc_fileString.parseYaml
 
     val syntaxVersion = parseSyntaxVersion(UrcyamlAst)
     syntaxVersion match {
@@ -91,12 +104,48 @@ object UrcConfig {
     // Parse FirConfig from YAML AST
     val urc_generic = UrcyamlAst.convertTo[UrcGeneric]
 
+   //Load interpolator
+    var intf2_config: Option[intF2Config] = None
+
+    intF2Config.loadFromFile(
+        intf2_file, 
+        inthb1_file, 
+        inthb2_file, 
+        inthb3_file, 
+        intcic3_file) match {
+        case Left(config) => {
+            intf2_config = Some(config)
+        }
+        case Right(err) => {
+            System.err.println(s"\nCould not load F2 int configuration from file:\n${err.msg}")
+            System.exit(-1)
+        }
+    }
+
+    //Load decimator
+    var decf2_config: Option[decF2Config] = None
+
+    decF2Config.loadFromFile(
+        decf2_file, 
+        dechb1_file, 
+        dechb2_file, 
+        dechb3_file, 
+        deccic3_file) match {
+        case Left(config) => {
+            decf2_config = Some(config)
+        }
+        case Right(err) => {
+            System.err.println(s"\nCould not load F2 dec configuration from file:\n${err.msg}")
+            System.exit(-1)
+        }
+    }
+
     val config = new UrcConfig(
 	    urc_generic.syntax_version, 
 	    urc_generic.resolution, 
 	    urc_generic.gainBits,
-        f2int_config,
-        f2dec_config
+        intf2_config.get,
+        decf2_config.get
     )
 
     println("resolution:")
