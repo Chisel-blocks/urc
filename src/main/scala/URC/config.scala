@@ -65,17 +65,17 @@ object UrcConfig {
   }
 
   def loadFromFile(
-    urc_file: String, 
-    intf2_file: String, 
-    inthb1_file: String, 
-    inthb2_file: String, 
-    inthb3_file: String, 
-    intcic3_file: String,
-    decf2_file: String, 
-    dechb1_file: String, 
-    dechb2_file: String, 
-    dechb3_file: String, 
-    deccic3_file: String
+    urc_file: String = "urc-config.yml", 
+    intf2_file: String = "urc/f2_interpolator/configs/f2-config.yml", 
+    inthb1_file: String = "urc/f2_interpolator/hb_interpolator/configs/hb1-config.yml", 
+    inthb2_file: String = "urc/f2_interpolator/hb_interpolator/configs/hb2-config.yml", 
+    inthb3_file: String = "urc/f2_interpolator/hb_interpolator/configs/hb3-config.yml", 
+    intcic3_file: String = "urc/f2_interpolator/cic_interpolator/configs/cic3-config.yml",
+    decf2_file: String = "urc/f2_decimator/configs/f2-config.yml", 
+    dechb1_file: String = "urc/f2_decimator/hb_decimator/configs/hb1-config.yml", 
+    dechb2_file: String = "urc/f2_decimator/hb_decimator/configs/hb2-config.yml", 
+    dechb3_file: String = "urc/f2_decimator/hb_decimator/configs/hb3-config.yml", 
+    deccic3_file: String = "urc/f2_decimator/cic_decimator/configs/cic3-config.yml"
     ): Either[UrcConfig, Error] = {
 
     println(s"\nLoading Urc configuration from file: $urc_file")
