@@ -76,7 +76,7 @@ SBT=sbt -J-Xmx16G -J-Xss8M
 
 # Default parameters
 urc_config_file ?= "urc-config.yml"
-td ?= "\$(VERILOGDIR)/"
+td ?= "\$(VERILOGDIR)"
 
 MAINPARAMS = -urc_config_file \$(urc_config_file) -td \$(td)
 
