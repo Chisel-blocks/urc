@@ -106,8 +106,7 @@ class URC(config: UrcConfig) extends Module {
     f2int.io.control.hb3scale       := io.control.hb3scale
     f2int.io.control.mode           := io.control.mode
 
-
-    f2int.io.clock.hb1clock_low := clkdiv.io.clkp8n.asClock
+    f2int.io.clock.hb1clock_low  := clkdiv.io.clkp8n.asClock
     f2int.io.clock.hb1clock_high := clkdiv.io.clkp4n.asClock
     f2int.io.clock.hb2clock_high := clkdiv.io.clkp2n.asClock
     f2int.io.clock.hb3clock_high := clkdiv.io.clkpn.asClock
