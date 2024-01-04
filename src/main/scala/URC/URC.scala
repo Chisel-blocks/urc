@@ -90,11 +90,11 @@ class URC(config: UrcConfig) extends Module {
     f2intreset := reset.asBool
     f2decreset := reset.asBool
 
-    val clkdiv = withClockAndReset(clock, clkreset)(Module( 
+    val clkdiv = withReset(clkreset)(Module( 
         new clkdiv_n_2_4_8(n=8)
     ))
 
-    val f2int = withClockAndReset(clock, f2intreset)(Module( 
+    val f2int = withReset(f2intreset)(Module( 
         new F2_Interpolator(config=config.f2int_config)
     ))
 
@@ -112,7 +112,7 @@ class URC(config: UrcConfig) extends Module {
     f2int.io.clock.hb3clock_high := clkdiv.io.clkpn.asClock
     f2int.io.clock.cic3clockfast := clock
 
-    val f2dec = withClockAndReset(clock, f2decreset)(Module( 
+    val f2dec = withReset(f2decreset)(Module( 
         new F2_Decimator(config=config.f2dec_config)
     ))    
 
