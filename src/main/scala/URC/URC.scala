@@ -19,12 +19,6 @@ import f2_interpolator._
 import f2_decimator._
 import clkdiv_n_2_4_8._
 
-object UrcStates {
-    object State extends ChiselEnum {
-        val bypass, two, four, eight, more = Value
-    }  
-}
-
 class URCCTRL(val resolution : Int, val gainBits: Int) extends Bundle {
     val cic3scale = Input(UInt(gainBits.W))
     val cic3shift = Input(UInt(log2Ceil(resolution).W))
@@ -60,27 +54,6 @@ class URC(config: UrcConfig) extends Module {
     val Z_IQ = RegInit(DspComplex(0.S(data_reso.W),0.S(data_reso.W)))
     io.out.Z := Cat(Z_IQ.real.asUInt, Z_IQ.imag.asUInt)
 
-    import UrcStates.State
-    import UrcStates.State._
-
-    //Select state with master clock
-    val state = RegInit(bypass)
-
-    //Decoder for the modes
-    when(io.control.mode === 0.U){
-        state := bypass
-    } .elsewhen(io.control.mode === 1.U) {
-        state := two
-    } .elsewhen(io.control.mode === 2.U) {
-        state := four
-    } .elsewhen(io.control.mode === 3.U) {
-        state := eight
-    } .elsewhen(io.control.mode === 4.U) {
-        state := more
-    }.otherwise {
-        state := bypass
-    }
-
    //Reset initializations
     val clkreset = Wire(Bool())
     val f2intreset = Wire(Bool())
@@ -93,6 +66,9 @@ class URC(config: UrcConfig) extends Module {
     val clkdiv = withReset(clkreset)(Module( 
         new clkdiv_n_2_4_8(n=8)
     ))
+
+    clkdiv.io.reset_clk := clkreset
+    clkdiv.io.Ndiv := 2.U
 
     val f2int = withReset(f2intreset)(Module( 
         new F2_Interpolator(config=config.f2int_config)
@@ -147,22 +123,17 @@ class URC(config: UrcConfig) extends Module {
         Z_IQ                         := f2int.io.out.Z
     }
 
-    clkdiv.io.reset_clk := clkreset
-    clkdiv.io.Ndiv := 2.U
-    clkdiv.io.shift := 0.U
-
     //Modes
-    when(state === two){
-        clkdiv.io.shift := 3.U
-    }.elsewhen(state === four){
-        clkdiv.io.shift := 2.U
-    }.elsewhen(state === eight){
-        clkdiv.io.shift := 1.U
-    }.elsewhen(state === more){
-        clkdiv.io.shift := 0.U
-    }.otherwise{
-        // Bypass
-        clkdiv.io.shift := 4.U
+    when(io.control.mode === 1.U){ // Two
+        clkdiv.io.shift := 3.U(3.W)
+    }.elsewhen(io.control.mode === 2.U){ //Four
+        clkdiv.io.shift := 2.U(3.W)
+    }.elsewhen(io.control.mode === 3.U){ //Eight
+        clkdiv.io.shift := 1.U(3.W)
+    }.elsewhen(io.control.mode === 4.U){ //More
+        clkdiv.io.shift := 0.U(3.W)
+    }.otherwise{ //Bypass
+        clkdiv.io.shift := 4.U(3.W)
     }
 }
 
