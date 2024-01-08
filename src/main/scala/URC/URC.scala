@@ -48,7 +48,7 @@ class URC(config: UrcConfig) extends Module {
     val czero  = DspComplex(0.S(data_reso.W),0.S(data_reso.W)) //Constant complex zero
 
     val iptr_A_IQ = RegInit(DspComplex(0.S(data_reso.W),0.S(data_reso.W)))
-    iptr_A_IQ.real := io.in.iptr_A(31,15).asSInt
+    iptr_A_IQ.real := io.in.iptr_A(31,16).asSInt
     iptr_A_IQ.imag := io.in.iptr_A(15,0).asSInt
 
     val Z_IQ = RegInit(DspComplex(0.S(data_reso.W),0.S(data_reso.W)))
