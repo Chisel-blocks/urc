@@ -33,10 +33,10 @@ class URCCTRL(val resolution : Int, val gainBits: Int) extends Bundle {
 class URCIO(resolution: Int, gainBits: Int) extends Bundle {
     val control = new URCCTRL(resolution=resolution, gainBits=gainBits)
     val in = new Bundle {
-        val iptr_A = Input(UInt((resolution * 2).W))
+        val iptr_A = Input(DspComplex(SInt(resolution.W), SInt(resolution.W)))
     }
     val out = new Bundle {
-        val Z = Output(UInt((resolution * 2).W))
+        val Z = Output(DspComplex(SInt(resolution.W), SInt(resolution.W)))
     }
 }
 
@@ -46,13 +46,6 @@ class URC(config: UrcConfig) extends Module {
     val calc_reso = config.resolution * 2
 
     val czero  = DspComplex(0.S(data_reso.W),0.S(data_reso.W)) //Constant complex zero
-
-    val iptr_A_IQ = RegInit(DspComplex(0.S(data_reso.W),0.S(data_reso.W)))
-    iptr_A_IQ.real := io.in.iptr_A(31,16).asSInt
-    iptr_A_IQ.imag := io.in.iptr_A(15,0).asSInt
-
-    val Z_IQ = RegInit(DspComplex(0.S(data_reso.W),0.S(data_reso.W)))
-    io.out.Z := Cat(Z_IQ.real.asUInt, Z_IQ.imag.asUInt)
 
    //Reset initializations
     val clkreset = Wire(Bool())
@@ -109,18 +102,18 @@ class URC(config: UrcConfig) extends Module {
         f2intreset := true.B
         f2int.io.in.iptr_A := czero
 
-        f2dec.io.in.iptr_A          := iptr_A_IQ
+        f2dec.io.in.iptr_A          := io.in.iptr_A
         f2decreset                  := reset.asBool
         f2dec.io.control.reset_loop := io.control.reset_loop
-        Z_IQ                        := f2dec.io.out.Z
+        io.out.Z                        := f2dec.io.out.Z
     } .otherwise {
         f2decreset := true.B
         f2dec.io.in.iptr_A := czero
 
-        f2int.io.in.iptr_A           := iptr_A_IQ
+        f2int.io.in.iptr_A           := io.in.iptr_A
         f2intreset                   := reset.asBool
         f2int.io.control.reset_loop  := io.control.reset_loop
-        Z_IQ                         := f2int.io.out.Z
+        io.out.Z                         := f2int.io.out.Z
     }
 
     //Modes
