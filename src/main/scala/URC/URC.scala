@@ -105,7 +105,7 @@ class URC(config: UrcConfig) extends Module {
         f2dec.io.in.iptr_A          := io.in.iptr_A
         f2decreset                  := reset.asBool
         f2dec.io.control.reset_loop := io.control.reset_loop
-        io.out.Z                        := f2dec.io.out.Z
+        io.out.Z                    := f2dec.io.out.Z
     } .otherwise {
         f2decreset := true.B
         f2dec.io.in.iptr_A := czero
@@ -113,20 +113,20 @@ class URC(config: UrcConfig) extends Module {
         f2int.io.in.iptr_A           := io.in.iptr_A
         f2intreset                   := reset.asBool
         f2int.io.control.reset_loop  := io.control.reset_loop
-        io.out.Z                         := f2int.io.out.Z
+        io.out.Z                     := f2int.io.out.Z
     }
 
     //Modes
     when(io.control.mode === 1.U){ // Two
-        clkdiv.io.shift := 3.U(3.W)
-    }.elsewhen(io.control.mode === 2.U){ //Four
         clkdiv.io.shift := 2.U(3.W)
-    }.elsewhen(io.control.mode === 3.U){ //Eight
+    }.elsewhen(io.control.mode === 2.U){ //Four
         clkdiv.io.shift := 1.U(3.W)
-    }.elsewhen(io.control.mode === 4.U){ //More
-        clkdiv.io.shift := 0.U(3.W)
-    }.otherwise{ //Bypass
+    }.elsewhen(io.control.mode === 3.U){ //Eight
         clkdiv.io.shift := 4.U(3.W)
+    }.elsewhen(io.control.mode === 4.U){ //More
+        clkdiv.io.shift := 4.U(3.W)
+    }.otherwise{ //Bypass
+        clkdiv.io.shift := 0.U(3.W)
     }
 }
 
