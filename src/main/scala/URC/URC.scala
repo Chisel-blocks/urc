@@ -126,7 +126,8 @@ class URC(config: UrcConfig) extends Module {
     }.elsewhen(io.control.mode === 4.U){ //More
         clkdiv.io.shift := 4.U(3.W)
     }.otherwise{ //Bypass
-        clkdiv.io.shift := 0.U(3.W)
+        clkdiv.io.Ndiv := 1.U(8.W)
+        clkdiv.io.shift := 3.U(3.W)
     }
 }
 
