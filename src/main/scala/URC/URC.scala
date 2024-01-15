@@ -23,6 +23,7 @@ class URCCTRL(val resolution : Int, val gainBits: Int) extends Bundle {
     val cic3scale = Input(UInt(gainBits.W))
     val cic3shift = Input(UInt(log2Ceil(resolution).W))
     val reset_loop = Input(Bool())
+    val reset_clock = Input(Bool())
     val hb1scale = Input(UInt(gainBits.W))
     val hb2scale = Input(UInt(gainBits.W))
     val hb3scale = Input(UInt(gainBits.W))
@@ -52,7 +53,7 @@ class URC(config: UrcConfig) extends Module {
     val f2intreset = Wire(Bool())
     val f2decreset = Wire(Bool())
 
-    clkreset := reset.asBool
+    clkreset := io.control.reset_clock
     f2intreset := reset.asBool
     f2decreset := reset.asBool
 
@@ -60,7 +61,7 @@ class URC(config: UrcConfig) extends Module {
         new clkdiv_n_2_4_8(n=8)
     ))
 
-    clkdiv.io.reset_clk := clkreset
+    clkdiv.io.reset_clk := io.control.reset_clock
     clkdiv.io.Ndiv := 2.U
 
     val f2int = withReset(f2intreset)(Module( 
