@@ -28,6 +28,9 @@ class URCCTRL(val resolution : Int, val gainBits: Int) extends Bundle {
     val hb1scale = Input(UInt(gainBits.W))
     val hb2scale = Input(UInt(gainBits.W))
     val hb3scale = Input(UInt(gainBits.W))
+    val hb1output_switch = Input(UInt(1.W))
+    val hb2output_switch = Input(UInt(1.W))
+    val hb3output_switch = Input(UInt(1.W))
     val mode = Input(UInt(3.W))
     val convmode = Input(UInt(1.W))
 }
@@ -76,6 +79,9 @@ class URC(config: UrcConfig) extends Module {
     f2int.io.control.hb2scale       := io.control.hb2scale
     f2int.io.control.hb3scale       := io.control.hb3scale
     f2int.io.control.mode           := io.control.mode
+    f2int.io.control.hb1output_switch:= io.control.hb1output_switch
+    f2int.io.control.hb2output_switch:= io.control.hb2output_switch
+    f2int.io.control.hb3output_switch:= io.control.hb3output_switch
 
     f2int.io.clock.hb1clock_low  := clkdiv.io.clkp8n.asClock
     f2int.io.clock.hb1clock_high := clkdiv.io.clkp4n.asClock
