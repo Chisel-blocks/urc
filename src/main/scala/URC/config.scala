@@ -8,7 +8,7 @@ import scala.math.BigInt
 import scala.io.Source
 import chisel3._
 
-import f2_universal.config.{F2Config}
+import f2_universal.config.{f2Config}
 
 case class URCGeneric(
   syntax_version:     Option[Int], // None for scala instantiation
@@ -20,7 +20,7 @@ case class URCConfig(
   syntax_version:     Option[Int], // None for scala instantiation
   resolution:         Int,
   gainBits:           Int,
-  f2_config:       F2Config,
+  f2_config:          f2Config,
 )
 
 object URCConfig {
@@ -98,9 +98,9 @@ object URCConfig {
     val urc_generic = URCyamlAst.convertTo[URCGeneric]
 
    //Load interpolator
-    var intf2_config: Option[intF2Config] = None
+    var f2_config: Option[f2Config] = None
 
-    F2Config.loadFromFile(
+    f2Config.loadFromFile(
         f2_file, 
         hb1_file, 
         hb2_file, 
@@ -110,7 +110,7 @@ object URCConfig {
             f2_config = Some(config)
         }
         case Right(err) => {
-            System.err.println(s"\nCould not load F2 configuration from file:\n${err.msg}")
+            System.err.println(s"\nCould not load f2 configuration from file:\n${err.msg}")
             System.exit(-1)
         }
     }

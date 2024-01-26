@@ -13,9 +13,9 @@ val chiselVersion = "3.5.1"
 
 resolvers += "A-Core Gitlab" at "https://gitlab.com/api/v4/groups/13348068/-/packages/maven"
 
-lazy val urc = (project in file("."))
+lazy val URC = (project in file("."))
   .settings(
-    name := "urc",
+    name := "URC",
     libraryDependencies ++= Seq(
       "edu.berkeley.cs" %% "chisel3" % chiselVersion,
       "edu.berkeley.cs" %% "dsptools" % "1.5.6",
@@ -41,5 +41,4 @@ def gitSubmoduleHashSnapshotVersion(submod: String): String = {
 // Put your git-version controlled snapshots here
 // libraryDependencies += "Chisel-blocks" %% "someblock" % gitSubmoduleHashSnapshotVersion("someblock")
 libraryDependencies += "Chisel-blocks" %% "clkdiv_n_2_4_8" % gitSubmoduleHashSnapshotVersion("clkdiv_n_2_4_8")
-libraryDependencies += "Chisel-blocks" %% "f2_interpolator" % gitSubmoduleHashSnapshotVersion("f2_interpolator")
-libraryDependencies += "Chisel-blocks" %% "f2_decimator" % gitSubmoduleHashSnapshotVersion("f2_decimator")
+libraryDependencies += "Chisel-blocks" %% "f2_universal" % gitSubmoduleHashSnapshotVersion("f2_universal")
