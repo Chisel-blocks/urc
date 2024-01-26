@@ -25,11 +25,14 @@ class URCCTRL(val resolution : Int, val gainBits: Int) extends Bundle {
     val ndiv = Input(UInt(8.W))
     val reset_clock = Input(Bool())
     val hb1scale = Input(UInt(gainBits.W))
-    val hb2scale = Input(UInt(gainBits.W))
-    val hb3scale = Input(UInt(gainBits.W))
     val hb1output_switch = Input(UInt(1.W))
+    val hb1enable_clk_div = Input(UInt(1.W))
+    val hb2scale = Input(UInt(gainBits.W))
     val hb2output_switch = Input(UInt(1.W))
+    val hb2enable_clk_div = Input(UInt(1.W))
+    val hb3scale = Input(UInt(gainBits.W))
     val hb3output_switch = Input(UInt(1.W))
+    val hb3enable_clk_div = Input(UInt(1.W))
     val mode = Input(UInt(3.W))
     val convmode = Input(UInt(1.W))
 }
@@ -74,7 +77,7 @@ class URC(config: URCConfig) extends Module {
 
     f2.io.control.cic3scale     := io.control.cic3scale
     f2.io.control.cic3shift     := io.control.cic3shift
-    f2.io.control.Ndiv          := io.control.cic3Ndiv
+    f2.io.control.cic3Ndiv          := io.control.ndiv
 
     f2.io.control.hb1scale          := io.control.hb1scale
     f2.io.control.hb1output_switch  := io.control.hb1output_switch
