@@ -8,36 +8,34 @@ import scala.math.BigInt
 import scala.io.Source
 import chisel3._
 
-import f2_interpolator.config.{F2Config => intF2Config}
-import f2_decimator.config.{F2Config => decF2Config}
+import f2_universal.config.{F2Config}
 
-case class UrcGeneric(
+case class URCGeneric(
   syntax_version:     Option[Int], // None for scala instantiation
   resolution:         Int,
   gainBits:           Int
 )
 
-case class UrcConfig(
+case class URCConfig(
   syntax_version:     Option[Int], // None for scala instantiation
   resolution:         Int,
   gainBits:           Int,
-  f2int_config:       intF2Config,
-  f2dec_config:       decF2Config,
+  f2_config:       F2Config,
 )
 
-object UrcConfig {
-  implicit val UrcGenericFormat = yamlFormat3(UrcGeneric)
+object URCConfig {
+  implicit val URCGenericFormat = yamlFormat3(URCGeneric)
 
   // TODO: Update this to always match the major version number of the release
   val syntaxVersion = 2
 
   /** Exception type for FIR config parsing errors */
-  class UrcConfigParseException(msg: String) extends Exception(msg)
+  class URCConfigParseException(msg: String) extends Exception(msg)
 
   /** Type for representing error return values from a function */
   case class Error(msg: String) {
     /** Throw a parsing exception with a debug message. */
-    def except() = { throw new UrcConfigParseException(msg) }
+    def except() = { throw new URCConfigParseException(msg) }
 
     /** Abort program execution and print out the reason */
     def panic() = {
@@ -66,23 +64,18 @@ object UrcConfig {
 
   def loadFromFile(
     urc_file: String = "urc-config.yml", 
-    intf2_file: String = "urc/f2_interpolator/configs/f2-config.yml", 
-    inthb1_file: String = "urc/f2_interpolator/hb_interpolator/configs/hb1-config.yml", 
-    inthb2_file: String = "urc/f2_interpolator/hb_interpolator/configs/hb2-config.yml", 
-    inthb3_file: String = "urc/f2_interpolator/hb_interpolator/configs/hb3-config.yml", 
-    intcic3_file: String = "urc/f2_interpolator/cic_interpolator/configs/cic3-config.yml",
-    decf2_file: String = "urc/f2_decimator/configs/f2-config.yml", 
-    dechb1_file: String = "urc/f2_decimator/hb_decimator/configs/hb1-config.yml", 
-    dechb2_file: String = "urc/f2_decimator/hb_decimator/configs/hb2-config.yml", 
-    dechb3_file: String = "urc/f2_decimator/hb_decimator/configs/hb3-config.yml", 
-    deccic3_file: String = "urc/f2_decimator/cic_decimator/configs/cic3-config.yml"
-    ): Either[UrcConfig, Error] = {
+    f2_file: String = "urc/f2_universal/configs/f2-config.yml", 
+    hb1_file: String = "urc/f2_universal/hb_universal/configs/hb1-config.yml", 
+    hb2_file: String = "urc/f2_universal/hb_universal/configs/hb2-config.yml", 
+    hb3_file: String = "urc/f2_universal/hb_universal/configs/hb3-config.yml", 
+    cic3_file: String = "urc/f2_universal/cic_universal/configs/cic3-config.yml",
+    ): Either[URCConfig, Error] = {
 
-    println(s"\nLoading Urc configuration from file: $urc_file")
-    var Urc_fileString: String = ""
+    println(s"\nLoading URC configuration from file: $urc_file")
+    var URC_fileString: String = ""
     try {
       val bufferedSource = Source.fromFile(urc_file)
-      Urc_fileString = bufferedSource.getLines().mkString("\n")
+      URC_fileString = bufferedSource.getLines().mkString("\n")
       bufferedSource.close
     } catch {
       case e: Exception => return Right(Error(e.getMessage()))
@@ -93,59 +86,40 @@ object UrcConfig {
     //println(s"```\n$fileString\n```")
 
     // Determine syntax version
-    val UrcyamlAst = Urc_fileString.parseYaml
+    val URCyamlAst = URC_fileString.parseYaml
 
-    val syntaxVersion = parseSyntaxVersion(UrcyamlAst)
+    val syntaxVersion = parseSyntaxVersion(URCyamlAst)
     syntaxVersion match {
       case Left(value) => ()
       case Right(err) => return Right(err)
     }
 
     // Parse FirConfig from YAML AST
-    val urc_generic = UrcyamlAst.convertTo[UrcGeneric]
+    val urc_generic = URCyamlAst.convertTo[URCGeneric]
 
    //Load interpolator
     var intf2_config: Option[intF2Config] = None
 
-    intF2Config.loadFromFile(
-        intf2_file, 
-        inthb1_file, 
-        inthb2_file, 
-        inthb3_file, 
-        intcic3_file) match {
+    F2Config.loadFromFile(
+        f2_file, 
+        hb1_file, 
+        hb2_file, 
+        hb3_file, 
+        cic3_file) match {
         case Left(config) => {
-            intf2_config = Some(config)
+            f2_config = Some(config)
         }
         case Right(err) => {
-            System.err.println(s"\nCould not load F2 int configuration from file:\n${err.msg}")
+            System.err.println(s"\nCould not load F2 configuration from file:\n${err.msg}")
             System.exit(-1)
         }
     }
 
-    //Load decimator
-    var decf2_config: Option[decF2Config] = None
-
-    decF2Config.loadFromFile(
-        decf2_file, 
-        dechb1_file, 
-        dechb2_file, 
-        dechb3_file, 
-        deccic3_file) match {
-        case Left(config) => {
-            decf2_config = Some(config)
-        }
-        case Right(err) => {
-            System.err.println(s"\nCould not load F2 dec configuration from file:\n${err.msg}")
-            System.exit(-1)
-        }
-    }
-
-    val config = new UrcConfig(
+    val config = new URCConfig(
 	    urc_generic.syntax_version, 
 	    urc_generic.resolution, 
 	    urc_generic.gainBits,
-        intf2_config.get,
-        decf2_config.get
+        f2_config.get
     )
 
     println("resolution:")

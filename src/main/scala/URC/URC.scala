@@ -1,7 +1,7 @@
 // Finitie impulse filter
 package urc
 import config._
-import config.{UrcConfig}
+import config.{URCConfig}
 
 import java.io.File
 
@@ -15,8 +15,7 @@ import chisel3.stage.ChiselGeneratorAnnotation
 import dsptools._
 import dsptools.numbers.DspComplex
 
-import f2_interpolator._
-import f2_decimator._
+import f2_universal._
 import clkdiv_n_2_4_8._
 
 class URCCTRL(val resolution : Int, val gainBits: Int) extends Bundle {
@@ -45,7 +44,7 @@ class URCIO(resolution: Int, gainBits: Int) extends Bundle {
     }
 }
 
-class URC(config: UrcConfig) extends Module {
+class URC(config: URCConfig) extends Module {
     val io = IO(new URCIO(resolution=config.resolution, gainBits=config.gainBits))
     val data_reso = config.resolution
     val calc_reso = config.resolution * 2
@@ -54,12 +53,10 @@ class URC(config: UrcConfig) extends Module {
 
    //Reset initializations
     val clkreset = Wire(Bool())
-    val f2intreset = Wire(Bool())
-    val f2decreset = Wire(Bool())
+    val f2reset = Wire(Bool())
 
     clkreset := io.control.reset_clock
-    f2intreset := reset.asBool
-    f2decreset := reset.asBool
+    f2reset := reset.asBool
 
     val clkdiv = withReset(reset)(Module( 
         new clkdiv_n_2_4_8(n=8)
@@ -68,61 +65,26 @@ class URC(config: UrcConfig) extends Module {
     clkdiv.io.reset_clk := io.control.reset_clock
     clkdiv.io.Ndiv := io.control.ndiv
 
-    val f2int = withReset(f2intreset)(Module( 
-        new F2_Interpolator(config=config.f2int_config)
+    val f2 = withReset(f2reset)(Module( 
+        new f2_universal(config=config.f2_config)
     ))
 
-    f2int.io.control.cic3derivscale := io.control.cic3scale
-    f2int.io.control.cic3derivshift := io.control.cic3shift
-    f2int.io.control.reset_loop     := io.control.reset_loop
-    f2int.io.control.hb1scale       := io.control.hb1scale
-    f2int.io.control.hb2scale       := io.control.hb2scale
-    f2int.io.control.hb3scale       := io.control.hb3scale
-    f2int.io.control.mode           := io.control.mode
-    f2int.io.control.hb1output_switch:= io.control.hb1output_switch
-    f2int.io.control.hb2output_switch:= io.control.hb2output_switch
-    f2int.io.control.hb3output_switch:= io.control.hb3output_switch
+    f2.io.control.cicscale          := io.control.cic3scale
+    f2.io.control.cicshift          := io.control.cic3shift
+    f2.io.control.reset_loop        := io.control.reset_loop
+    f2.io.control.hb1scale          := io.control.hb1scale
+    f2.io.control.hb2scale          := io.control.hb2scale
+    f2.io.control.hb3scale          := io.control.hb3scale
+    f2.io.control.mode              := io.control.mode
+    f2.io.control.hb1output_switch  := io.control.hb1output_switch
+    f2.io.control.hb2output_switch  := io.control.hb2output_switch
+    f2.io.control.hb3output_switch  := io.control.hb3output_switch
 
-    f2int.io.clock.hb1clock_low  := clkdiv.io.clkp8n.asClock
-    f2int.io.clock.hb1clock_high := clkdiv.io.clkp4n.asClock
-    f2int.io.clock.hb2clock_high := clkdiv.io.clkp2n.asClock
-    f2int.io.clock.hb3clock_high := clkdiv.io.clkpn.asClock
-    f2int.io.clock.cic3clockfast := clock
-
-    val f2dec = withReset(f2decreset)(Module( 
-        new F2_Decimator(config=config.f2dec_config)
-    ))    
-
-    f2dec.io.control.cic3integscale := io.control.cic3scale
-    f2dec.io.control.cic3integshift := io.control.cic3shift
-    f2dec.io.control.reset_loop     := io.control.reset_loop
-    f2dec.io.control.hb1scale       := io.control.hb1scale
-    f2dec.io.control.hb2scale       := io.control.hb2scale
-    f2dec.io.control.hb3scale       := io.control.hb3scale
-    f2dec.io.control.mode           := io.control.mode
-
-    f2dec.io.clock.cic3clockslow := clkdiv.io.clkpn.asClock
-    f2dec.io.clock.hb1clock_low  := clkdiv.io.clkp2n.asClock
-    f2dec.io.clock.hb2clock_low  := clkdiv.io.clkp4n.asClock
-    f2dec.io.clock.hb3clock_low  := clkdiv.io.clkp8n.asClock
-
-    when(io.control.convmode.asBool){
-        f2intreset := true.B
-        f2int.io.in.iptr_A := czero
-
-        f2dec.io.in.iptr_A          := io.in.iptr_A
-        f2decreset                  := reset.asBool
-        f2dec.io.control.reset_loop := io.control.reset_loop
-        io.out.Z                    := f2dec.io.out.Z
-    } .otherwise {
-        f2decreset := true.B
-        f2dec.io.in.iptr_A := czero
-
-        f2int.io.in.iptr_A           := io.in.iptr_A
-        f2intreset                   := reset.asBool
-        f2int.io.control.reset_loop  := io.control.reset_loop
-        io.out.Z                     := f2int.io.out.Z
-    }
+    f2.io.clock.hb1  := clkdiv.io.clkp8n.asClock
+    f2.io.clock.hb1  := clkdiv.io.clkp4n.asClock
+    f2.io.clock.hb2  := clkdiv.io.clkp2n.asClock
+    f2.io.clock.hb3  := clkdiv.io.clkpn.asClock
+    f2.io.clock.cic3 := clock
 
     //Modes
     when(io.control.mode === 1.U){ // Two
@@ -147,32 +109,22 @@ object URC extends App with OptionParser {
     printopts(options, arguments)
 
     val urc_config_file = options("urc_config_file")
-    val intf2_config_file = options("intf2_config_file")
-    val inthb1_config_file = options("inthb1_config_file")
-    val inthb2_config_file = options("inthb2_config_file")
-    val inthb3_config_file = options("inthb3_config_file")
-    val intcic3_config_file = options("intcic3_config_file")
-    val decf2_config_file = options("decf2_config_file")
-    val dechb1_config_file = options("dechb1_config_file")
-    val dechb2_config_file = options("dechb2_config_file")
-    val dechb3_config_file = options("dechb3_config_file")
-    val deccic3_config_file = options("deccic3_config_file")
+    val f2_config_file = options("f2_config_file")
+    val hb1_config_file = options("hb1_config_file")
+    val hb2_config_file = options("hb2_config_file")
+    val hb3_config_file = options("hb3_config_file")
+    val cic3_config_file = options("cic3_config_file")
     val target_dir = options("td")
     
-    var urc_config: Option[UrcConfig] = None
+    var urc_config: Option[URCConfig] = None
 
-    UrcConfig.loadFromFile(
+    URCConfig.loadFromFile(
         urc_config_file, 
-        intf2_config_file,
-        inthb1_config_file,
-        inthb2_config_file,
-        inthb3_config_file,
-        intcic3_config_file,
-        decf2_config_file,
-        dechb1_config_file,
-        dechb2_config_file,
-        dechb3_config_file,
-        deccic3_config_file) match {
+        f2_config_file,
+        hb1_config_file,
+        hb2_config_file,
+        hb3_config_file,
+        cic3_config_file) match {
         case Left(config) => {
             urc_config = Some(config)
         }
@@ -198,32 +150,22 @@ trait OptionParser {
   // Module specific command-line option flags
   val available_opts: List[String] = List(
       "-urc_config_file",
-      "-intf2_config_file",
-      "-inthb1_config_file",
-      "-inthb2_config_file",
-      "-inthb3_config_file",
-      "-intcic3_config_file",
-      "-decf2_config_file",
-      "-dechb1_config_file",
-      "-dechb2_config_file",
-      "-dechb3_config_file",
-      "-deccic3_config_file",
+      "-f2_config_file",
+      "-hb1_config_file",
+      "-hb2_config_file",
+      "-hb3_config_file",
+      "-cic3_config_file",
       "-td"
   )
 
   // Default values for the command-line options
   val default_opts : Map[String, String] = Map(
     "urc_config_file"->"urc-config.yml",
-    "intf2_config_file"->"f2_interpolator/configs/f2-config.yml",
-    "inthb1_config_file"->"f2_interpolator/hb_interpolator/configs/hb1-config.yml",
-    "inthb2_config_file"->"f2_interpolator/hb_interpolator/configs/hb2-config.yml",
-    "inthb3_config_file"->"f2_interpolator/hb_interpolator/configs/hb3-config.yml",
-    "intcic3_config_file"->"f2_interpolator/cic_interpolator/configs/cic3-config.yml",
-    "decf2_config_file"->"f2_decimator/configs/f2-config.yml",
-    "dechb1_config_file"->"f2_decimator/hb_decimator/configs/hb1-config.yml",
-    "dechb2_config_file"->"f2_decimator/hb_decimator/configs/hb2-config.yml",
-    "dechb3_config_file"->"f2_decimator/hb_decimator/configs/hb3-config.yml",
-    "deccic3_config_file"->"f2_decimator/cic_decimator/configs/cic3-config.yml",
+    "f2_config_file"->"f2_universal/configs/f2-config.yml",
+    "hb1_config_file"->"f2_universal/hb_universal/configs/hb1-config.yml",
+    "hb2_config_file"->"f2_universal/hb_universal/configs/hb2-config.yml",
+    "hb3_config_file"->"f2_universal/hb_universal/configs/hb3-config.yml",
+    "cic3_config_file"->"f2_universal/cic_universal/configs/cic3-config.yml",
     "td"->"verilog/"
   )
 
@@ -239,16 +181,11 @@ trait OptionParser {
       |
       | Options
       |     -urc_config_file       [String]  : Generator YAML configuration file name. Default "urc-config.yml".
-      |     -intf2_config_file     [String]  : Generator YAML configuration file name. Default "f2-config.yml".
-      |     -inthb1_config_file    [String]  : Generator YAML configuration file name. Default "hb1-config.yml".
-      |     -inthb2_config_file    [String]  : Generator YAML configuration file name. Default "hb2-config.yml".
-      |     -inthb3_config_file    [String]  : Generator YAML configuration file name. Default "hb3-config.yml".
-      |     -intcic3_config_file   [String]  : Generator YAML configuration file name. Default "cic3-config.yml".
-      |     -decf2_config_file     [String]  : Generator YAML configuration file name. Default "f2-config.yml".
-      |     -dechb1_config_file    [String]  : Generator YAML configuration file name. Default "hb1-config.yml".
-      |     -dechb2_config_file    [String]  : Generator YAML configuration file name. Default "hb2-config.yml".
-      |     -dechb3_config_file    [String]  : Generator YAML configuration file name. Default "hb3-config.yml".
-      |     -deccic3_config_file   [String]  : Generator YAML configuration file name. Default "cic3-config.yml".
+      |     -f2_config_file        [String]  : Generator YAML configuration file name. Default "f2-config.yml".
+      |     -hb1_config_file       [String]  : Generator YAML configuration file name. Default "hb1-config.yml".
+      |     -hb2_config_file       [String]  : Generator YAML configuration file name. Default "hb2-config.yml".
+      |     -hb3_config_file       [String]  : Generator YAML configuration file name. Default "hb3-config.yml".
+      |     -cic3_config_file      [String]  : Generator YAML configuration file name. Default "cic3-config.yml".
       |     -td                    [String]  : Target dir for building. Default "verilog/".
       |     -h                               : Show this help message.
       """.stripMargin

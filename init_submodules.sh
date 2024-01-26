@@ -3,20 +3,18 @@
 #Written by by Marko Kosunen, marko.kosunen@aalto.fi, 2017
 DIR=$( cd `dirname $0` && pwd )
 SUBMODULES="\
-    ./f2_interpolator \
-    ./f2_decimator \
+    ./f2_universal \
     ./clkdiv_n_2_4_8
 "
 
-git submodule sync
-for mod in $SUBMODULES; do 
-    git submodule update --init $mod
-    cd ${mod}
-    if [ -f ./init_submodules.sh ]; then
+git submodule update --init
+for module in $SUBMODULES; do
+    cd ${DIR}/${module}
+    if [ -f "./init_submodules.sh" ]; then
         ./init_submodules.sh
     fi
+    sbt publishLocal
     cd ${DIR}
-
 done
 exit 0
 
