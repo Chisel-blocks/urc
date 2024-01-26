@@ -7,3 +7,6 @@
 [submodule "clkdiv_n_2_4_8"]
 	path = clkdiv_n_2_4_8
 	url = git@github.com:Chisel-blocks/clkdiv_n_2_4_8.git
+[submodule "f2_universal"]
+	path = f2_universal
+	url = git@bubba.ecdl.hut.fi:a-core/a-core_chisel/f2_universal.git
