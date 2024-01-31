@@ -97,6 +97,12 @@ object URCConfig {
     // Parse FirConfig from YAML AST
     val urc_generic = URCyamlAst.convertTo[URCGeneric]
 
+   println("resolution:")
+    println(urc_generic.resolution)
+
+    println("gainBits:")
+    println(urc_generic.gainBits)
+
    //Load interpolator
     var f2_config: Option[f2Config] = None
 
@@ -121,12 +127,6 @@ object URCConfig {
 	    urc_generic.gainBits,
         f2_config.get
     )
-
-    println("resolution:")
-    println(config.resolution)
-
-    println("gainBits:")
-    println(config.gainBits)
 
     Left(config)
   }
