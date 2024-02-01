@@ -6,9 +6,6 @@ ThisBuild / scalaVersion     := "2.13.8"
 ThisBuild / version          := scala.sys.process.Process("git rev-parse --short HEAD").!!.mkString.replaceAll("\\s", "")+"-SNAPSHOT"
 ThisBuild / organization     := "Chisel-blocks"
 
-// Suppresses eviction errors for new sbt versions
-ThisBuild / evictionErrorLevel := Level.Info
-
 val chiselVersion = "3.5.1"
 
 resolvers += "A-Core Gitlab" at "https://gitlab.com/api/v4/groups/13348068/-/packages/maven"
