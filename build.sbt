@@ -13,7 +13,11 @@ val chiselVersion = "3.5.1"
 
 resolvers += "A-Core Gitlab" at "https://gitlab.com/api/v4/groups/13348068/-/packages/maven"
 
-lazy val URC = (project in file("."))
+lazy val clkdiv_n_2_4_8 = (project in file("clkdiv_n_2_4_8"))
+
+lazy val f2_universal = (project in file("f2_universal"))
+
+lazy val urc = (project in file("."))
   .settings(
     name := "URC",
     libraryDependencies ++= Seq(
@@ -31,6 +35,7 @@ lazy val URC = (project in file("."))
     ),
     addCompilerPlugin("edu.berkeley.cs" % "chisel3-plugin" % chiselVersion cross CrossVersion.full)
   )
+  .dependsOn(clkdiv_n_2_4_8, f2_universal)
 
 // Parse the version of a submodle from the git submodule status
 // for those modules not version controlled by Maven or equivalent
@@ -40,5 +45,3 @@ def gitSubmoduleHashSnapshotVersion(submod: String): String = {
 }
 // Put your git-version controlled snapshots here
 // libraryDependencies += "Chisel-blocks" %% "someblock" % gitSubmoduleHashSnapshotVersion("someblock")
-libraryDependencies += "Chisel-blocks" %% "clkdiv_n_2_4_8" % gitSubmoduleHashSnapshotVersion("clkdiv_n_2_4_8")
-libraryDependencies += "Chisel-blocks" %% "f2_universal" % gitSubmoduleHashSnapshotVersion("f2_universal")
