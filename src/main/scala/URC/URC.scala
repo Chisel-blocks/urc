@@ -21,6 +21,7 @@ import clkdiv_n_2_4_8._
 class URCCTRL(val resolution : Int, val gainBits: Int) extends Bundle {
     val cic3scale = Input(UInt(gainBits.W))
     val cic3shift = Input(UInt(log2Ceil(resolution).W))
+    val cic3enable_clk_div = Input(UInt(1.W))
     val reset_loop = Input(Bool())
     val ndiv = Input(UInt(8.W))
     val reset_clock = Input(Bool())
@@ -78,6 +79,7 @@ class URC(config: URCConfig) extends Module {
     f2.io.control.cic3scale     := io.control.cic3scale
     f2.io.control.cic3shift     := io.control.cic3shift
     f2.io.control.cic3Ndiv          := io.control.ndiv+1.U
+    f2.io.control.cic3enable_clk_div := io.control.cic3enable_clk_div
 
     f2.io.control.hb1scale          := io.control.hb1scale
     f2.io.control.hb1output_switch  := io.control.hb1output_switch
@@ -96,12 +98,7 @@ class URC(config: URCConfig) extends Module {
 
     f2.io.control.reset_loop    := io.control.reset_loop
     f2.io.control.reset_clk     := io.control.reset_clock
-    //f2.io.control.reset_clk     := io.control.reset_loop
 
-    //f2.io.clock.hb1             := clkdiv.io.clkp8n.asClock
-    //f2.io.clock.hb2             := clkdiv.io.clkp4n.asClock
-    //f2.io.clock.hb3             := clkdiv.io.clkp2n.asClock
-    //f2.io.clock.cic3            := clkdiv.io.clkpn.asClock
     f2.io.clock.hb1             := Mux(f2reset.asBool,clock.asUInt.asBool,clkdiv.io.clkp8n).asClock
     f2.io.clock.hb2             := Mux(f2reset.asBool,clock.asUInt.asBool,clkdiv.io.clkp4n).asClock
     f2.io.clock.hb3             := Mux(f2reset.asBool,clock.asUInt.asBool,clkdiv.io.clkp2n).asClock
