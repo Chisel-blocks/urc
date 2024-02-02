@@ -20,7 +20,6 @@ import clkdiv_n_2_4_8._
 
 class URCCTRL(val resolution : Int, val gainBits: Int) extends Bundle {
     val cic3scale = Input(UInt(gainBits.W))
-    val cic3shift = Input(UInt(log2Ceil(resolution).W))
     val cic3enable_clk_div = Input(UInt(1.W))
     val reset_loop = Input(Bool())
     val ndiv = Input(UInt(8.W))
@@ -76,9 +75,8 @@ class URC(config: URCConfig) extends Module {
     f2.io.in.iptr_A             := io.in.iptr_A
     io.out.Z                    := f2.io.out.Z
 
-    f2.io.control.cic3scale     := io.control.cic3scale
-    f2.io.control.cic3shift     := io.control.cic3shift
-    f2.io.control.cic3Ndiv          := io.control.ndiv+1.U
+    f2.io.control.cic3scale          := io.control.cic3scale
+    f2.io.control.cic3Ndiv           := io.control.ndiv + 1.U
     f2.io.control.cic3enable_clk_div := io.control.cic3enable_clk_div
 
     f2.io.control.hb1scale          := io.control.hb1scale
