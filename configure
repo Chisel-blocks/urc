@@ -78,6 +78,8 @@ SBT=sbt -J-Xmx16G -J-Xss8M
 urc_config_file ?= "urc-config.yml"
 td ?= "\$(VERILOGDIR)"
 
+gen_coeffs ?= false
+
 MAINPARAMS = -urc_config_file \$(urc_config_file) -td \$(td)
 
 TOUCH=touch -r
@@ -91,6 +93,7 @@ all: ${MAINMODULE}
 
 ${MAINMODULE}: \$(VERILOGDIR)/${MAINMODULE}.v
 \$(VERILOGDIR)/${MAINMODULE}.v:
+	if [ \$(gen_coeffs) == true ]; then python3 gen_coeffs.py; fi
 	\$(SBT) 'runMain ${PACKAGE}.${MAINMODULE} \$(MAINPARAMS)'
 
 clean:
