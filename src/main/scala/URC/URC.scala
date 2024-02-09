@@ -20,19 +20,15 @@ import clkdiv_n_2_4_8._
 
 class URCCTRL(val resolution : Int, val gainBits: Int) extends Bundle {
     val cic3scale = Input(UInt(gainBits.W))
-    val cic3enable_clk_div = Input(UInt(1.W))
     val reset_loop = Input(Bool())
     val ndiv = Input(UInt(8.W))
     val reset_clock = Input(Bool())
     val hb1scale = Input(UInt(gainBits.W))
     val hb1output_switch = Input(UInt(1.W))
-    val hb1enable_clk_div = Input(UInt(1.W))
     val hb2scale = Input(UInt(gainBits.W))
     val hb2output_switch = Input(UInt(1.W))
-    val hb2enable_clk_div = Input(UInt(1.W))
     val hb3scale = Input(UInt(gainBits.W))
     val hb3output_switch = Input(UInt(1.W))
-    val hb3enable_clk_div = Input(UInt(1.W))
     val mode = Input(UInt(3.W))
     val convmode = Input(UInt(1.W))
 }
@@ -67,6 +63,8 @@ class URC(config: URCConfig) extends Module {
 
     clkdiv.io.reset_clk := io.control.reset_clock
     clkdiv.io.Ndiv := io.control.ndiv
+    val f2_clock = Wire(Clock())
+    f2_clock := clock
 
     val f2 = withReset(f2reset)(Module( 
         new f2_universal(config=config.f2_config)
@@ -76,20 +74,15 @@ class URC(config: URCConfig) extends Module {
     io.out.Z                    := f2.io.out.Z
 
     f2.io.control.cic3scale          := io.control.cic3scale
-    f2.io.control.cic3Ndiv           := io.control.ndiv + 1.U
-    f2.io.control.cic3enable_clk_div := io.control.cic3enable_clk_div
 
     f2.io.control.hb1scale          := io.control.hb1scale
     f2.io.control.hb1output_switch  := io.control.hb1output_switch
-    f2.io.control.hb1enable_clk_div := io.control.hb1enable_clk_div
 
     f2.io.control.hb2scale          := io.control.hb2scale
     f2.io.control.hb2output_switch  := io.control.hb2output_switch
-    f2.io.control.hb2enable_clk_div := io.control.hb2enable_clk_div
 
     f2.io.control.hb3scale          := io.control.hb3scale
     f2.io.control.hb3output_switch  := io.control.hb3output_switch
-    f2.io.control.hb3enable_clk_div := io.control.hb3enable_clk_div
 
     f2.io.control.mode          := io.control.mode
     f2.io.control.convmode      := io.control.convmode
@@ -97,22 +90,28 @@ class URC(config: URCConfig) extends Module {
     f2.io.control.reset_loop    := io.control.reset_loop
     f2.io.control.reset_clk     := io.control.reset_clock
 
-    f2.io.clock.hb1             := Mux(f2reset.asBool,clock.asUInt.asBool,clkdiv.io.clkp8n).asClock
-    f2.io.clock.hb2             := Mux(f2reset.asBool,clock.asUInt.asBool,clkdiv.io.clkp4n).asClock
-    f2.io.clock.hb3             := Mux(f2reset.asBool,clock.asUInt.asBool,clkdiv.io.clkp2n).asClock
-    f2.io.clock.cic3            := Mux(f2reset.asBool,clock.asUInt.asBool,clkdiv.io.clkpn).asClock
+    f2.io.clock.p8n             := Mux(f2reset.asBool,clock.asUInt.asBool,clkdiv.io.clkp8n).asClock
+    f2.io.clock.p4n             := Mux(f2reset.asBool,clock.asUInt.asBool,clkdiv.io.clkp4n).asClock
+    f2.io.clock.p2n             := Mux(f2reset.asBool,clock.asUInt.asBool,clkdiv.io.clkp2n).asClock
+    f2.io.clock.pn            := Mux(f2reset.asBool,clock.asUInt.asBool,clkdiv.io.clkpn).asClock
 
     //Modes
     when(io.control.mode === 1.U){ // Two
         clkdiv.io.shift := 3.U(3.W)
+        f2_clock := clkdiv.io.clkp4n.asClock
     }.elsewhen(io.control.mode === 2.U){ //Four
         clkdiv.io.shift := 2.U(3.W)
+        f2_clock := clkdiv.io.clkp2n.asClock
     }.elsewhen(io.control.mode === 3.U){ //Eight
         clkdiv.io.shift := 1.U(3.W)
+        f2_clock := clkdiv.io.clkpn.asClock
     }.elsewhen(io.control.mode === 4.U){ //More
         clkdiv.io.shift := 0.U(3.W)
+        f2_clock := clock
+
     }.otherwise{ //Bypass
         clkdiv.io.shift := 3.U(3.W)
+        f2_clock := clock
     }
 }
 
