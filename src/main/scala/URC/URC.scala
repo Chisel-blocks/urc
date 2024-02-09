@@ -63,8 +63,8 @@ class URC(config: URCConfig) extends Module {
 
     clkdiv.io.reset_clk := io.control.reset_clock
     clkdiv.io.Ndiv := io.control.ndiv
-    val f2_clock = Wire(Clock())
-    f2_clock := clock
+    val f2_mclock = Wire(Clock())
+    f2_mclock := clock
 
     val f2 = withReset(f2reset)(Module( 
         new f2_universal(config=config.f2_config)
@@ -98,20 +98,19 @@ class URC(config: URCConfig) extends Module {
     //Modes
     when(io.control.mode === 1.U){ // Two
         clkdiv.io.shift := 3.U(3.W)
-        f2_clock := clkdiv.io.clkp4n.asClock
+        f2_mclock := clkdiv.io.clkp4n.asClock
     }.elsewhen(io.control.mode === 2.U){ //Four
         clkdiv.io.shift := 2.U(3.W)
-        f2_clock := clkdiv.io.clkp2n.asClock
+        f2_mclock := clkdiv.io.clkp2n.asClock
     }.elsewhen(io.control.mode === 3.U){ //Eight
         clkdiv.io.shift := 1.U(3.W)
-        f2_clock := clkdiv.io.clkpn.asClock
+        f2_mclock := clkdiv.io.clkpn.asClock
     }.elsewhen(io.control.mode === 4.U){ //More
         clkdiv.io.shift := 0.U(3.W)
-        f2_clock := clock
-
+        f2_mclock := clock
     }.otherwise{ //Bypass
         clkdiv.io.shift := 3.U(3.W)
-        f2_clock := clock
+        f2_mclock := clock
     }
 }
 
