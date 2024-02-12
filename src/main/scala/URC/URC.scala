@@ -97,13 +97,13 @@ class URC(config: URCConfig) extends Module {
 
     //Modes
     when(io.control.mode === 1.U){ // Two
-        clkdiv.io.shift := 3.U(3.W)
+        clkdiv.io.shift := 2.U(3.W)
         f2_mclock := clkdiv.io.clkp4n.asClock
     }.elsewhen(io.control.mode === 2.U){ //Four
-        clkdiv.io.shift := 2.U(3.W)
+        clkdiv.io.shift := 1.U(3.W)
         f2_mclock := clkdiv.io.clkp2n.asClock
     }.elsewhen(io.control.mode === 3.U){ //Eight
-        clkdiv.io.shift := 1.U(3.W)
+        clkdiv.io.shift := 0.U(3.W)
         f2_mclock := clkdiv.io.clkpn.asClock
     }.elsewhen(io.control.mode === 4.U){ //More
         clkdiv.io.shift := 0.U(3.W)
