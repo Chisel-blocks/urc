@@ -63,15 +63,15 @@ class URC(config: URCConfig) extends Module {
 
     clkdiv.io.reset_clk := io.control.reset_clock
     clkdiv.io.Ndiv := io.control.ndiv
-    val f2_mclock = Wire(Clock())
-    f2_mclock := clock
+    val f2_mclock = Wire(Bool())
+    f2_mclock := clock.asBool
 
-    val f2 = withReset(f2reset)(Module( 
+    val f2 = withClockAndReset(f2_mclock.asClock, f2reset)(Module( 
         new f2_universal(config=config.f2_config)
     ))
 
-    f2.io.in.iptr_A             := io.in.iptr_A
-    io.out.Z                    := f2.io.out.Z
+    f2.io.in.iptr_A := io.in.iptr_A
+    io.out.Z        := f2.io.out.Z
 
     f2.io.control.cic3scale          := io.control.cic3scale
 
@@ -90,27 +90,27 @@ class URC(config: URCConfig) extends Module {
     f2.io.control.reset_loop    := io.control.reset_loop
     f2.io.control.reset_clk     := io.control.reset_clock
 
-    f2.io.clock.p8n             := Mux(f2reset.asBool,clock.asUInt.asBool,clkdiv.io.clkp8n).asClock
-    f2.io.clock.p4n             := Mux(f2reset.asBool,clock.asUInt.asBool,clkdiv.io.clkp4n).asClock
-    f2.io.clock.p2n             := Mux(f2reset.asBool,clock.asUInt.asBool,clkdiv.io.clkp2n).asClock
-    f2.io.clock.pn            := Mux(f2reset.asBool,clock.asUInt.asBool,clkdiv.io.clkpn).asClock
+    f2.io.clock.p8n   := Mux(f2reset.asBool, clock.asUInt.asBool, clkdiv.io.clkp8n).asClock
+    f2.io.clock.p4n   := Mux(f2reset.asBool, clock.asUInt.asBool, clkdiv.io.clkp4n).asClock
+    f2.io.clock.p2n   := Mux(f2reset.asBool, clock.asUInt.asBool, clkdiv.io.clkp2n).asClock
+    f2.io.clock.pn    := Mux(f2reset.asBool, clock.asUInt.asBool, clkdiv.io.clkpn).asClock
 
     //Modes
     when(io.control.mode === 1.U){ // Two
-        clkdiv.io.shift := 2.U(3.W)
-        f2_mclock := clkdiv.io.clkp4n.asClock
+        clkdiv.io.shift := 3.U(3.W)
+        f2_mclock := clkdiv.io.clkp4n
     }.elsewhen(io.control.mode === 2.U){ //Four
-        clkdiv.io.shift := 1.U(3.W)
-        f2_mclock := clkdiv.io.clkp2n.asClock
+        clkdiv.io.shift := 2.U(3.W)
+        f2_mclock := clkdiv.io.clkp2n
     }.elsewhen(io.control.mode === 3.U){ //Eight
-        clkdiv.io.shift := 0.U(3.W)
-        f2_mclock := clkdiv.io.clkpn.asClock
+        clkdiv.io.shift := 1.U(3.W)
+        f2_mclock := clkdiv.io.clkpn
     }.elsewhen(io.control.mode === 4.U){ //More
         clkdiv.io.shift := 0.U(3.W)
-        f2_mclock := clock
+        f2_mclock := clock.asBool
     }.otherwise{ //Bypass
-        clkdiv.io.shift := 3.U(3.W)
-        f2_mclock := clock
+        clkdiv.io.shift := 4.U(3.W)
+        f2_mclock := clkdiv.io.clkp8n
     }
 }
 
