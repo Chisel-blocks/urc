@@ -10,32 +10,32 @@ import chisel3._
 
 import f2_universal.config.{f2Config}
 
-case class URCGeneric(
+case class urcGeneric(
   syntax_version:     Option[Int], // None for scala instantiation
   resolution:         Int,
   gainBits:           Int
 )
 
-case class URCConfig(
+case class urcConfig(
   syntax_version:     Option[Int], // None for scala instantiation
   resolution:         Int,
   gainBits:           Int,
   f2_config:          f2Config,
 )
 
-object URCConfig {
-  implicit val URCGenericFormat = yamlFormat3(URCGeneric)
+object urcConfig {
+  implicit val urcGenericFormat = yamlFormat3(urcGeneric)
 
   // TODO: Update this to always match the major version number of the release
   val syntaxVersion = 2
 
   /** Exception type for FIR config parsing errors */
-  class URCConfigParseException(msg: String) extends Exception(msg)
+  class urcConfigParseException(msg: String) extends Exception(msg)
 
   /** Type for representing error return values from a function */
   case class Error(msg: String) {
     /** Throw a parsing exception with a debug message. */
-    def except() = { throw new URCConfigParseException(msg) }
+    def except() = { throw new urcConfigParseException(msg) }
 
     /** Abort program execution and print out the reason */
     def panic() = {
@@ -69,13 +69,13 @@ object URCConfig {
     hb2_file: String = "urc/f2_universal/hb_universal/configs/hb2-config.yml", 
     hb3_file: String = "urc/f2_universal/hb_universal/configs/hb3-config.yml", 
     cic3_file: String = "urc/f2_universal/cic_universal/configs/cic3-config.yml",
-    ): Either[URCConfig, Error] = {
+    ): Either[urcConfig, Error] = {
 
-    println(s"\nLoading URC configuration from file: $urc_file")
-    var URC_fileString: String = ""
+    println(s"\nLoading urc configuration from file: $urc_file")
+    var urc_fileString: String = ""
     try {
       val bufferedSource = Source.fromFile(urc_file)
-      URC_fileString = bufferedSource.getLines().mkString("\n")
+      urc_fileString = bufferedSource.getLines().mkString("\n")
       bufferedSource.close
     } catch {
       case e: Exception => return Right(Error(e.getMessage()))
@@ -86,16 +86,16 @@ object URCConfig {
     //println(s"```\n$fileString\n```")
 
     // Determine syntax version
-    val URCyamlAst = URC_fileString.parseYaml
+    val urcyamlAst = urc_fileString.parseYaml
 
-    val syntaxVersion = parseSyntaxVersion(URCyamlAst)
+    val syntaxVersion = parseSyntaxVersion(urcyamlAst)
     syntaxVersion match {
       case Left(value) => ()
       case Right(err) => return Right(err)
     }
 
     // Parse FirConfig from YAML AST
-    val urc_generic = URCyamlAst.convertTo[URCGeneric]
+    val urc_generic = urcyamlAst.convertTo[urcGeneric]
 
    println("resolution:")
     println(urc_generic.resolution)
@@ -121,7 +121,7 @@ object URCConfig {
         }
     }
 
-    val config = new URCConfig(
+    val config = new urcConfig(
 	    urc_generic.syntax_version, 
 	    urc_generic.resolution, 
 	    urc_generic.gainBits,

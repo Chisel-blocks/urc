@@ -16,7 +16,7 @@ lazy val f2_universal = (project in file("f2_universal"))
 
 lazy val urc = (project in file("."))
   .settings(
-    name := "URC",
+    name := "urc",
     libraryDependencies ++= Seq(
       "edu.berkeley.cs" %% "chisel3" % chiselVersion,
       "edu.berkeley.cs" %% "dsptools" % "1.5.6",

@@ -1,7 +1,7 @@
 // Finitie impulse filter
 package urc
 import config._
-import config.{URCConfig}
+import config.{urcConfig}
 
 import java.io.File
 
@@ -18,7 +18,7 @@ import dsptools.numbers.DspComplex
 import f2_universal._
 import clkdiv_n_2_4_8._
 
-class URCCTRL(val resolution : Int, val gainBits: Int) extends Bundle {
+class urcCTRL(val resolution : Int, val gainBits: Int) extends Bundle {
     val cic3scale = Input(UInt(gainBits.W))
     val reset_loop = Input(Bool())
     val ndiv = Input(UInt(8.W))
@@ -33,8 +33,8 @@ class URCCTRL(val resolution : Int, val gainBits: Int) extends Bundle {
     val convmode = Input(UInt(1.W))
 }
 
-class URCIO(resolution: Int, gainBits: Int) extends Bundle {
-    val control = new URCCTRL(resolution=resolution, gainBits=gainBits)
+class urcIO(resolution: Int, gainBits: Int) extends Bundle {
+    val control = new urcCTRL(resolution=resolution, gainBits=gainBits)
     val in = new Bundle {
         val iptr_A = Input(DspComplex(SInt(resolution.W), SInt(resolution.W)))
     }
@@ -43,8 +43,8 @@ class URCIO(resolution: Int, gainBits: Int) extends Bundle {
     }
 }
 
-class URC(config: URCConfig) extends Module {
-    val io = IO(new URCIO(resolution=config.resolution, gainBits=config.gainBits))
+class urc(config: urcConfig) extends Module {
+    val io = IO(new urcIO(resolution=config.resolution, gainBits=config.gainBits))
     val data_reso = config.resolution
     val calc_reso = config.resolution * 2
 
@@ -117,7 +117,7 @@ class URC(config: URCConfig) extends Module {
 
 
 /** Generates verilog or sv*/
-object URC extends App with OptionParser {
+object urc extends App with OptionParser {
     // Parse command-line arguments
     val (options, arguments) = getopts(default_opts, args.toList)
     printopts(options, arguments)
@@ -130,9 +130,9 @@ object URC extends App with OptionParser {
     val cic3_config_file = options("cic3_config_file")
     val target_dir = options("td")
     
-    var urc_config: Option[URCConfig] = None
+    var urc_config: Option[urcConfig] = None
 
-    URCConfig.loadFromFile(
+    urcConfig.loadFromFile(
         urc_config_file, 
         f2_config_file,
         hb1_config_file,
@@ -149,9 +149,9 @@ object URC extends App with OptionParser {
     }
 
     // Generate verilog
-    val annos = Seq(ChiselGeneratorAnnotation(() => new URC(config=urc_config.get)))
+    val annos = Seq(ChiselGeneratorAnnotation(() => new urc(config=urc_config.get)))
     val sysverilog = (new ChiselStage).emitSystemVerilog(
-        new URC(config=urc_config.get),
+        new urc(config=urc_config.get),
      
     //args
     Array("--target-dir", target_dir))
