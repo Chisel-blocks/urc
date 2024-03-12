@@ -7,10 +7,7 @@ import java.io.File
 
 import chisel3._
 import chisel3.util._
-import chisel3.util.{log2Ceil}
-import chisel3.experimental.FixedPoint
 import chisel3.stage.{ChiselStage, ChiselGeneratorAnnotation}
-import chisel3.stage.ChiselGeneratorAnnotation
 
 import dsptools._
 import dsptools.numbers.DspComplex
@@ -150,7 +147,7 @@ object urc extends App with OptionParser {
 
     // Generate verilog
     val annos = Seq(ChiselGeneratorAnnotation(() => new urc(config=urc_config.get)))
-    val sysverilog = (new ChiselStage).emitSystemVerilog(
+    val verilog = (new ChiselStage).emitVerilog(
         new urc(config=urc_config.get),
      
     //args
