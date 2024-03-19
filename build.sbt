@@ -5,10 +5,8 @@ import scala.sys.process._
 ThisBuild / scalaVersion     := "2.13.8"
 ThisBuild / version          := scala.sys.process.Process("git rev-parse --short HEAD").!!.mkString.replaceAll("\\s", "")+"-SNAPSHOT"
 ThisBuild / organization     := "Chisel-blocks"
-
-val chiselVersion = "3.5.6"
-
 resolvers += "A-Core Gitlab" at "https://gitlab.com/api/v4/groups/13348068/-/packages/maven"
+val chiselVersion = "3.5.6"
 
 lazy val clkdiv_n_2_4_8 = (project in file("clkdiv_n_2_4_8"))
 
