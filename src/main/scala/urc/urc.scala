@@ -171,7 +171,7 @@ trait OptionParser {
 
   // Default values for the command-line options
   val default_opts : Map[String, String] = Map(
-    "urc_config_file"->"urc-config.yml",
+    "urc_config_file"->"configs/urc-config.yml",
     "f2_config_file"->"f2_universal/configs/f2-config.yml",
     "hb1_config_file"->"f2_universal/hb_universal/configs/hb1-config.yml",
     "hb2_config_file"->"f2_universal/hb_universal/configs/hb2-config.yml",

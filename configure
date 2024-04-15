@@ -75,12 +75,12 @@ TEST_TARGETS = \$(foreach name,\$(TEST_MODULES), test_\$(name))
 SBT=sbt -J-Xmx16G -J-Xss8M
 
 # Default parameters
-config_file ?= "urc-config.yml"
+urc_config_file ?= "configs/urc-config.yml"
 td ?= "\$(VERILOGDIR)"
 
 gen_coeffs ?= false
 
-MAINPARAMS = -config_file \$(config_file) -td \$(td)
+MAINPARAMS = -urc_config_file \$(urc_config_file) -td \$(td)
 
 TOUCH=touch -r
 `for i in ${VPATHDIRS}; do
