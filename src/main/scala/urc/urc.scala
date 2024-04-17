@@ -28,6 +28,8 @@ class urcCTRL(val resolution : Int, val gainBits: Int) extends Bundle {
     val hb3output_switch = Input(UInt(1.W))
     val mode = Input(UInt(3.W))
     val convmode = Input(UInt(1.W))
+    val in_valid = Input(UInt(1.W))
+    val out_valid = Output(UInt(1.W))
 }
 
 class urcIO(resolution: Int, gainBits: Int) extends Bundle {
@@ -70,7 +72,7 @@ class urc(config: urcConfig) extends Module {
     f2.io.in.iptr_A := io.in.iptr_A
     io.out.Z        := f2.io.out.Z
 
-    f2.io.control.cic3scale          := io.control.cic3scale
+    f2.io.control.cic3scale         := io.control.cic3scale
 
     f2.io.control.hb1scale          := io.control.hb1scale
     f2.io.control.hb1output_switch  := io.control.hb1output_switch
@@ -80,6 +82,9 @@ class urc(config: urcConfig) extends Module {
 
     f2.io.control.hb3scale          := io.control.hb3scale
     f2.io.control.hb3output_switch  := io.control.hb3output_switch
+
+    f2.io.control.in_valid          := io.control.in_valid
+    io.control.out_valid            := f2.io.control.out_valid
 
     f2.io.control.mode          := io.control.mode
     f2.io.control.convmode      := io.control.convmode
@@ -147,7 +152,7 @@ object urc extends App with OptionParser {
 
     // Generate verilog
     val annos = Seq(ChiselGeneratorAnnotation(() => new urc(config=urc_config.get)))
-    val verilog = (new ChiselStage).emitVerilog(
+    val verilog = (new ChiselStage).emitSystemVerilog(
         new urc(config=urc_config.get),
      
     //args
